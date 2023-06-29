@@ -1,5 +1,6 @@
-FROM python:3.11-slim
-ENV PYTHONUNBUFFERED 1
+# Yan Pan, 2023. Chroma DB and functionality required Bullseye
+FROM python:3.11-bullseye
+ENV PYTHONUNBUFFERED=1 HNSWLIB_NO_NATIVE=1
 
 RUN mkdir /app
 WORKDIR /app
