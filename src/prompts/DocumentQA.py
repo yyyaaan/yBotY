@@ -1,9 +1,8 @@
 # Yan Pan, 2023
+from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma, DocArrayInMemorySearch
+from langchain.vectorstores import Chroma
 
 from prompts.BaseOpenAI import BaseOpenAI
 from settings.settings import Settings
@@ -11,55 +10,51 @@ from settings.settings import Settings
 
 class DocumentQA(BaseOpenAI):
     """
-    Document QA backend with ChromaDB, use static method to create a persistent db.
+    Document QA backend with ChromaDB
+    See ChromaDB must be existing - create it using VectorDB.create_from_file
     """
 
-    @staticmethod
-    def create_persistent_chroma_db(
-        source_file: str = "",
-        directory: str = "default",
-    ):
-        """create chroma embeddings DB from text file"""
+    CHAIN_TYPES = ["stuff", "map_reduce"]
 
-        chroma_dir = f"{Settings().CHROMA_PATH}/{directory}"
+    def __init__(
+        self,
+        db_name: str,
+        chain_type: str = "stuff",
+        temperature: float = 0.0,
+        using_azure: bool = False
+    ) -> None:
 
-        if source_file.lower().endswith(".html"):
-            from langchain.document_loaders import UnstructuredHTMLLoader
-            loader = UnstructuredHTMLLoader(source_file)
+        if chain_type not in self.CHAIN_TYPES:
+            raise ValueError(f"chain_type must be one of {self.CHAIN_TYPES}")
 
-        if source_file.lower().endswith(".txt"):
-            from langchain.document_loaders import TextLoader
-            loader = TextLoader(source_file)
-
-        documents = loader.load()
-
-        texts = RecursiveCharacterTextSplitter(
-            chunk_size = 1000,
-            chunk_overlap = 100,
-        ).split_documents(documents)
-
-        vector_db = Chroma.from_documents(
-            documents = texts, 
-            embedding = OpenAIEmbeddings(), 
-            persist_directory = chroma_dir,
-        )
-        vector_db.persist()
-        del vector_db
-        return None
-
-    def __init__(self, temperature=0.0, using_azure=False):
         super().__init__(temperature=temperature, using_azure=using_azure)
 
-        self.db = DocArrayInMemorySearch(
-            vector_store=UnstructuredHTMLLoader(file_path="me.html").load(),
-            embedding=OpenAIEmbeddings()
+        settings = Settings()
+        db = Chroma(
+            persist_directory=f"{settings.CHROMA_PATH}/{db_name}",
+            embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
         )
-        
-        # db = Chroma.from_documents(docs, embeddings)
 
         self.qa = RetrievalQA.from_chain_type(
-            llm=ChatOpenAI(temperature = 0.0), 
-            chain_type="stuff", # "stuff", 
-            retriever=db.as_retriever(), 
-            verbose=True
-)
+            llm=self.llm,
+            chain_type=chain_type,
+            retriever=db.as_retriever(),
+        )
+
+        return None
+
+    def ask(self, question: str) -> str:
+
+        with get_openai_callback() as cb:
+            response = self.qa.run(question)
+
+        metrics = {
+            "total_tokens": cb.total_tokens,
+            "prompt_tokens": cb.prompt_tokens,
+            "completion_tokens": cb.completion_tokens,
+            "total_costs": cb.total_cost,
+        }
+        return {
+            "response": response,
+            "metrics": metrics
+        }

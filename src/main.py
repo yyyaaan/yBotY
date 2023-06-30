@@ -1,5 +1,6 @@
 # Yan Pan, 2023
 from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from prompts.CodeAnalyzer import CodeAnalyzer
@@ -18,11 +19,20 @@ templates = Jinja2Templates(
 
 
 @app.get("/")
-async def index(request:Request):
+def index(request: Request):
     return templates.TemplateResponse(
-        "index.html", context={"request":request}
+        "index.html", context={"request": request}
     )
 
+
 @app.post("/code", response_model=CodeAnalyzer.OutputSchema)
-async def analyze_code(request:Request, payload: CodeAnalyzer.InputSchema):
+def analyze_code(request: Request, payload: CodeAnalyzer.InputSchema):
     return CodeAnalyzer().analyze(payload.code)
+
+
+@app.post("/code/stream", )
+def analyze_code_stream(payload: CodeAnalyzer.InputSchema):
+    return StreamingResponse(
+        CodeAnalyzer(streaming=True).analyze_stream(payload.code),
+        media_type="text/event-stream",
+    )
