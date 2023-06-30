@@ -1,5 +1,4 @@
 # Yan Pan, 2023
-from langchain.callbacks import get_openai_callback
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from pydantic import BaseModel
@@ -57,18 +56,10 @@ class CodeAnalyzer(BaseOpenAI):
         response = self.llm(messages)
 
         try:
-            metrics = {
-                "total_tokens": self.openai_callback.total_tokens,
-                "prompt_tokens": self.openai_callback.prompt_tokens,
-                "completion_tokens": self.openai_callback.completion_tokens,
-                "total_costs": self.openai_callback.total_cost,
+            return {
+                **self.parser.parse(response.content), 
+                "metrics": self.collect_usage()
             }
-        except Exception as e:
-            metrics = {}
-            print(e)
-
-        try:
-            return {**self.parser.parse(response.content), "metrics": metrics}
         except Exception as e:
             return {"exception": {
                 "content": response.content,

@@ -1,5 +1,4 @@
 # Yan Pan, 2023
-from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
@@ -59,18 +58,10 @@ class DocumentQA(BaseOpenAI):
 
     def ask(self, question: str) -> str:
 
-        with get_openai_callback() as cb:
-            response = self.qa.run(question)
-
-        metrics = {
-            "total_tokens": cb.total_tokens,
-            "prompt_tokens": cb.prompt_tokens,
-            "completion_tokens": cb.completion_tokens,
-            "total_costs": cb.total_cost,
-        }
+        response = self.qa.run(question)
         return {
             "response": response,
-            "metrics": metrics
+            "metrics": self.collect_usage()
         }
 
     async def ask_stream(self, question: str):
