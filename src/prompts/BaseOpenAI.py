@@ -20,6 +20,7 @@ class BaseOpenAI:
         streaming: bool = False,
         **kwargs,
     ):
+        print("Cache Info: initiated! I should be cached by LRU.")
         settings = Settings()
         self.openai_callback = OpenAICallbackHandler()
 
