@@ -25,6 +25,13 @@ def index(request: Request):
     )
 
 
+@app.get("/chat1")
+def chat_one(request: Request):
+    return templates.TemplateResponse(
+        "chat.html", context={"request": request}
+    )
+
+
 @app.post(
     "/code",
     tags=["Structured Answer"],
@@ -56,6 +63,18 @@ def chat_about_me_stream(payload: DocumentQA.InputSchema):
     return StreamingResponse(
         DocumentQA(
             db_name="yan-tietoevry-doc",
+            streaming=True
+        ).ask_stream(payload.question),
+        media_type="text/event-stream",
+    )
+
+
+@app.post("/stream/chat-offer", tags=["Streaming Response"])
+def chat_offer_stream(payload: DocumentQA.InputSchema):
+    print(payload)
+    return StreamingResponse(
+        DocumentQA(
+            db_name="kastelli",
             streaming=True
         ).ask_stream(payload.question),
         media_type="text/event-stream",

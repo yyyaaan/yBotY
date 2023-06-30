@@ -57,7 +57,7 @@ class CodeAnalyzer(BaseOpenAI):
 
         try:
             return {
-                **self.parser.parse(response.content), 
+                **self.parser.parse(response.content),
                 "metrics": self.collect_usage()
             }
         except Exception as e:

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/satoshi'); 
+        * {
+          font-family: 'Satoshi', sans-serif;
+        }
+    </style>
+    [% block head %]
+    <title>Base Head</title>
+    [% endblock %]
+</head>
+
+<body>
+    <main class="container">    
+        [% block main %]
+        <h1>Hello</h1>
+        <p>
+            <a class="waves-effect waves-light btn-large" href="[[ url_for('login_google') ]]">Login with google</a>
+        </p>
+        [% endblock %]
+
+    </main>
+    [% block after %]
+    [% endblock %]
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>M.AutoInit();</script>
+    [% block vuejs %]
+    [% endblock %]
+</body>
+</html>
