@@ -1,5 +1,4 @@
 # Yan Pan, 2023
-from asyncio import create_task
 from langchain.callbacks import get_openai_callback
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
@@ -76,16 +75,12 @@ class CodeAnalyzer(BaseOpenAI):
         """
         stream the outputs, where json parser is no longer possible
         """
-        if not self.llm.streaming:
-            raise Exception("CodeAnalyzer is not initialized with streaming=True") # noqa
+        self.validate_streaming()
 
         messages = self.template.format_messages(code=code, format="")
-
-        task = create_task(self.wrap_done(
-            self.llm.agenerate([messages]),
-            self.async_callback.done
-        ))
-
+        task = self.create_asyncio_wrapped_task(
+            self.llm.agenerate([messages])
+        )
         async for token in self.async_callback.aiter():
             yield token
 

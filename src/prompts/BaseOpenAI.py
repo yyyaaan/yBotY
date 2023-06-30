@@ -1,5 +1,5 @@
 # Yan Pan, 2023
-from asyncio import create_task, Event
+from asyncio import create_task, Event, Task
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.schema import LLMResult
@@ -50,6 +50,13 @@ class BaseOpenAI:
             )
         return None
 
+    def validate_streaming(self):
+        if self.llm.streaming:
+            pass
+        else:
+            raise Exception("Require initialization with streaming=True")
+
+    # below supports token/word streaming
     async def wrap_done(self, fn: Awaitable, event: Event):
         """Wrap an awaitable, event on done or on exception"""
         try:
@@ -59,15 +66,20 @@ class BaseOpenAI:
         finally:
             event.set()
 
+    def create_asyncio_wrapped_task(self, llm_result: LLMResult) -> Task:
+        return create_task(
+            self.wrap_done(llm_result, self.async_callback.done)
+        )
+
     async def __stream(self, llm_result: LLMResult) -> AsyncIterable[str]:
         """
         Wrap the stream output.
         llm_result must be a async object, for example model.agenereate
         """
-
-        task = create_task(self.wrap_done(
-            llm_result, self.async_callback.done
-        ))
+        # task = create_task(self.wrap_done(
+        #     llm_result, self.async_callback.done
+        # ))
+        task = self.create_asyncio_wrapped_task(llm_result)
         async for token in self.async_callback.aiter():
             yield f"{token} "
         await task
