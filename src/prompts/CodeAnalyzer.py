@@ -54,15 +54,19 @@ class CodeAnalyzer(BaseOpenAI):
             format=self.parser.get_format_instructions()
         )
 
-        with get_openai_callback() as cb:
-            response = self.llm(messages)
+        response = self.llm(messages)
 
-        metrics = {
-            "total_tokens": cb.total_tokens,
-            "prompt_tokens": cb.prompt_tokens,
-            "completion_tokens": cb.completion_tokens,
-            "total_costs": cb.total_cost,
-        }
+        try:
+            metrics = {
+                "total_tokens": self.openai_callback.total_tokens,
+                "prompt_tokens": self.openai_callback.prompt_tokens,
+                "completion_tokens": self.openai_callback.completion_tokens,
+                "total_costs": self.openai_callback.total_cost,
+            }
+        except Exception as e:
+            metrics = {}
+            print(e)
+
         try:
             return {**self.parser.parse(response.content), "metrics": metrics}
         except Exception as e:

@@ -1,6 +1,6 @@
 # Yan Pan, 2023
 from asyncio import create_task, Event, Task
-from langchain.callbacks import AsyncIteratorCallbackHandler
+from langchain.callbacks import AsyncIteratorCallbackHandler, OpenAICallbackHandler # noqa
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.schema import LLMResult
 from typing import AsyncIterable, Awaitable
@@ -21,15 +21,19 @@ class BaseOpenAI:
         **kwargs,
     ):
         settings = Settings()
+        self.openai_callback = OpenAICallbackHandler()
 
         if streaming:
             self.async_callback = AsyncIteratorCallbackHandler()
             llm_streaming_kwargs = {
                 "streaming": True,
-                "callbacks": [self.async_callback]
+                "callbacks": [self.async_callback, self.openai_callback]
             }
         else:
-            llm_streaming_kwargs = {"streaming": False}
+            llm_streaming_kwargs = {
+                "streaming": False,
+                "callbacks": [self.openai_callback]
+            }
 
         if using_azure:
             self.llm = AzureChatOpenAI(

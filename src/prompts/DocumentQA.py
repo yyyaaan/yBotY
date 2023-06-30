@@ -83,4 +83,3 @@ class DocumentQA(BaseOpenAI):
             yield token
 
         await task
-
