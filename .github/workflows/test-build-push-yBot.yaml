@@ -1,5 +1,5 @@
 # Yan Pan
-name: y-BotY-app
+name: yBotY-app
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
 
-  build_and_test:
+  Test_yBotY:
     runs-on: ubuntu-latest
     env:
       BOT_OPENAI_KEY: "FakeKeyIsHere"
@@ -25,10 +25,9 @@ jobs:
       with:
         python-version: "3.10"
     
-    - name: Install dependencies and flake8
+    - name: Install minimized dependencies
       run: |
-        pip install flake8
-        pip install -r requirements.txt
+        pip install flake8 fastapi pytest jinja2 openai langchain
     
     - name: Lint
       run: |
@@ -61,7 +60,7 @@ jobs:
           ./src/test-results.xml
           .//src/test-results.md
 
-  push_to_docker_hub:
+  Push_yBotY_Docker_Image:
     runs-on: ubuntu-latest
     environment: 	DockerHubConnected
     if: github.event_name != 'pull_request'
