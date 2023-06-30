@@ -31,6 +31,10 @@ class VectorStorage:
             from langchain.document_loaders import UnstructuredWordDocumentLoader  # noqa
             loader = UnstructuredWordDocumentLoader(source_file)
 
+        if source_file_ext in ["pdf"]:
+            from langchain.document_loaders import UnstructuredPDFLoader
+            loader = UnstructuredPDFLoader(source_file)
+
         if source_file_ext in ["md"]:
             from langchain.document_loaders import UnstructuredMarkdownLoader  # noqa
             loader = UnstructuredMarkdownLoader(source_file)

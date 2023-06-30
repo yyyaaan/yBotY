@@ -1,0 +1,124 @@
+<!-- Yan Pan 2023 -->
+[% extends "base.html" %]
+
+[% block head %] 
+<title>Chat with Doc</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<style>
+    .chat-card {
+        border-radius: 15px;
+        padding: 10px;
+        border: powderblue solid 3px;
+        margin-top: 10px;
+    }
+    #row-info {
+        z-index: 999999;
+        position: fixed;
+        bottom: 10px;
+        width: 60%;
+    }
+</style>
+[% endblock %]
+
+[% block main %]
+<div id="app">
+
+    <div id="row-info">
+        <div v-if="message" @click="message=''" class="card yellow lighten-5">
+            <div class="card-content orange-text">{{message}}</div>
+            <div class="card-action"><a @click="message=''">Close</a></div>
+        </div>
+    </div>
+
+    <div id="chat-bubbles" class="row">
+        <div v-for="msg in chat" :class="msg.role==='user'? 'col s8 push-s4' : 'col s8'" >
+            <div class="card-panel grey lighten-5" style="white-space: pre-wrap;">
+                {{ msg.content }}
+            </div>
+        </div>
+        <div v-if="streamText" class="col s8">
+            <div class="card-panel grey lighten-5" style="white-space: wrap;">
+                {{ streamText }}
+            </div>
+        </div>
+
+    </div>
+
+    <div id="chat-input" class="row valign-wrapper">
+        <div class="input-field col s10">
+            <input type="text" v-model="userInput" @keyup.enter="sendInput">
+        </div>
+        <div class="col s2" @click="sendInput">
+            <i class="material-icons" style="font-size: 30px; color: lightblue">send</i>
+        </div>
+    </div>
+
+[% endblock %]
+
+[% block vuejs %]
+<script>
+    var url_chat = "[[ endpoint ]]";
+    console.log(url_chat)
+
+    const {createApp} = Vue;
+
+    createApp({
+        data() {
+            return {
+                userInput: '',
+                streamText: '',
+                message: '',
+                chat: [{"role": "sys", "content": "Welcome!"}]
+            }
+        },
+
+        created() {
+        },
+
+        methods: {
+            async sendInput() {
+                this.scrollToBottom();
+                if (this.userInput.length < 10){
+                    this.message = "question too short."
+                    return;
+                }
+                this.chat.push({"role": "user", "content": this.userInput});
+                this.streamText = "waiting for bot...";
+
+                const response = await fetch(url_chat, {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: `{"question": "${this.userInput}"}`
+                });
+                // starting streaming
+                this.userInput = "";
+                const reader = response.body.getReader();
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        break;
+                    }
+
+                    const chunk = new TextDecoder('utf-8').decode(value);
+                    this.streamText += chunk;
+                }
+
+                // finish
+                this.chat.push({"role": "sys", "content": this.streamText.replace("waiting for bot...", "")})
+                this.streamText = ""
+                this.scrollToBottom()
+            },
+
+            scrollToBottom() {
+                setTimeout(() => {
+                    document.getElementById("chat-input").scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 900);
+            }
+        }
+    }).mount("#app");
+    </script>
+[% endblock %]
