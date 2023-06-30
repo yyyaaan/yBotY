@@ -1,5 +1,6 @@
-# Yan Pan, 2023. Chroma DB and functionality required Bullseye
-FROM python:3.11-bullseye
+# Yan Pan, 2023 
+# As of June 2023, packages cannot fully support python 3.11, nor any slim
+FROM python:3.10-bullseye
 ENV PYTHONUNBUFFERED=1 HNSWLIB_NO_NATIVE=1
 
 RUN mkdir /app

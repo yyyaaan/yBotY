@@ -1,6 +1,7 @@
 # YYYan
 from pydantic import BaseSettings
 
+
 class Settings(BaseSettings):
     OPENAI_KEY: str
     AZ_OPENAI_KEY: str = "missing"

@@ -1,7 +1,9 @@
 fastapi
+pytest
 uvicorn
 jinja2
 openai
 langchain
-chromadb
 unstructured
+chromadb
+tiktoken
