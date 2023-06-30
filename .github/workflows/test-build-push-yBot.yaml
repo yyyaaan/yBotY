@@ -65,7 +65,7 @@ jobs:
     environment: 	DockerHubConnected
     if: github.event_name != 'pull_request'
     needs:
-    - build_and_test
+    - Test_yBotY
     
     steps: 
     - uses: actions/checkout@v3
