@@ -25,10 +25,25 @@ def index(request: Request):
     )
 
 
-@app.get("/chat1")
-def chat_one(request: Request):
+@app.get("/chat")
+def page_chat_me(request: Request):
+    endpoint = str(request.url_for("chat_about_me_stream"))
+    if "localhost" not in endpoint:
+        endpoint = endpoint.replace("http://", "https://")
+
     return templates.TemplateResponse(
-        "chat.html", context={"request": request}
+        "chat.html", context={"request": request, "endpoint": endpoint}
+    )
+
+
+@app.get("/chat1")
+def page_chat_one(request: Request):
+    endpoint = str(request.url_for("chat_offer_stream"))
+    if "localhost" not in endpoint:
+        endpoint = endpoint.replace("http://", "https://")
+
+    return templates.TemplateResponse(
+        "chat.html", context={"request": request, "endpoint": endpoint}
     )
 
 
