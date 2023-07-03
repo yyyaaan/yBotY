@@ -4,7 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 # Loaders are imported only when necessary
 
-from settings.settings import Settings
+from botSettings.settings import Settings
 
 
 class VectorStorage:

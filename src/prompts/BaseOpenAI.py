@@ -4,8 +4,7 @@ from langchain.callbacks import AsyncIteratorCallbackHandler, OpenAICallbackHand
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.schema import LLMResult
 from typing import AsyncIterable, Awaitable
-from settings.settings import Settings
-
+from botSettings.settings import Settings
 
 class BaseOpenAI:
     """

@@ -5,7 +5,7 @@ from langchain.vectorstores import Chroma
 from pydantic import BaseModel
 
 from prompts.BaseOpenAI import BaseOpenAI
-from settings.settings import Settings
+from botSettings.settings import Settings
 
 
 class DocumentQA(BaseOpenAI):
