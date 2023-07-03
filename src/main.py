@@ -18,12 +18,6 @@ templates = Jinja2Templates(
 )
 
 
-@app.get("/")
-def index(request: Request):
-    return templates.TemplateResponse(
-        "index.html", context={"request": request}
-    )
-
 
 # backends
 
@@ -32,12 +26,19 @@ def index(request: Request):
     tags=["Structured Answer"],
     response_model=CodeAnalyzer.OutputSchema
 )
-def analyze_code(payload: CodeAnalyzer.InputSchema):
+def analyze_code(
+    request: Request,
+    payload: CodeAnalyzer.InputSchema
+):
+    request.app.objs.get("CodeAnalyzer", CodeAnalyzer())
     return CodeAnalyzer().analyze(payload.code)
 
 
 @app.post("/stream/code", tags=["Streaming Response"])
-def analyze_code_stream(payload: CodeAnalyzer.InputSchema):
+def analyze_code_stream(
+    request: Request,
+    payload: CodeAnalyzer.InputSchema
+):
     return StreamingResponse(
         CodeAnalyzer(streaming=True).analyze_stream(payload.code),
         media_type="text/event-stream",
@@ -49,12 +50,18 @@ def analyze_code_stream(payload: CodeAnalyzer.InputSchema):
     tags=["Structured Answer"],
     response_model=DocumentQA.OutputSchema
 )
-def chat_about_me(payload: DocumentQA.InputSchema):
+def chat_about_me(
+    request: Request,
+    payload: DocumentQA.InputSchema
+):
     return DocumentQA(db_name="yan-tietoevry-doc").ask(payload.question)
 
 
 @app.post("/stream/chat-about-me", tags=["Streaming Response"])
-def chat_about_me_stream(payload: DocumentQA.InputSchema):
+def chat_about_me_stream(
+    request: Request,
+    payload: DocumentQA.InputSchema
+):
     return StreamingResponse(
         DocumentQA(
             db_name="yan-tietoevry-doc",
@@ -65,18 +72,25 @@ def chat_about_me_stream(payload: DocumentQA.InputSchema):
 
 
 @app.post("/stream/chat-offer", tags=["Streaming Response"])
-def chat_offer_stream(payload: DocumentQA.InputSchema):
-    print(payload)
+def chat_offer_stream(
+    request: Request,
+    payload: DocumentQA.InputSchema
+):
+    agent = DocumentQA(db_name="kastelli", streaming=True)
     return StreamingResponse(
-        DocumentQA(
-            db_name="kastelli",
-            streaming=True
-        ).ask_stream(payload.question),
+        agent.ask_stream(payload.question),
         media_type="text/event-stream",
     )
 
 
 # minimal frontend
+
+@app.get("/")
+def index(request: Request):
+    return templates.TemplateResponse(
+        "index.html", context={"request": request}
+    )
+
 
 def render_chat_page(request: Request, name: str, **kwargs):
     endpoint = str(request.url_for(name))
