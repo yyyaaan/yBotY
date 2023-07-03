@@ -25,27 +25,7 @@ def index(request: Request):
     )
 
 
-@app.get("/chat")
-def page_chat_me(request: Request):
-    endpoint = str(request.url_for("chat_about_me_stream"))
-    if "localhost" not in endpoint:
-        endpoint = endpoint.replace("http://", "https://")
-
-    return templates.TemplateResponse(
-        "chat.html", context={"request": request, "endpoint": endpoint}
-    )
-
-
-@app.get("/chat1")
-def page_chat_one(request: Request):
-    endpoint = str(request.url_for("chat_offer_stream"))
-    if "localhost" not in endpoint:
-        endpoint = endpoint.replace("http://", "https://")
-
-    return templates.TemplateResponse(
-        "chat.html", context={"request": request, "endpoint": endpoint}
-    )
-
+# backends
 
 @app.post(
     "/code",
@@ -94,3 +74,40 @@ def chat_offer_stream(payload: DocumentQA.InputSchema):
         ).ask_stream(payload.question),
         media_type="text/event-stream",
     )
+
+
+# minimal frontend
+
+def render_chat_page(request: Request, name: str, **kwargs):
+    endpoint = str(request.url_for(name))
+
+    if "localhost" not in endpoint:
+        endpoint = endpoint.replace("http://", "https://")
+
+    return templates.TemplateResponse(
+        name="chat.html",
+        context={"request": request, "endpoint": endpoint, **kwargs},
+    )
+
+
+@app.get("/chat")
+def page_chat_me(request: Request):
+    desc = """
+    I am a chatbot that can tell about Yan Pan.
+    You may use any preferred language.
+    Please be aware that even though instructed to be precise and fact-based,
+    language model can still provide inaccurate information.
+    """.replace("  ", "")
+    return render_chat_page(
+        request, "chat_about_me_stream",
+        desc=desc, title="About Yan Pan"
+    )
+
+
+@app.get("/chat1")
+def page_chat_one(request: Request):
+    meta = {
+        "title": "PDF Chat",
+        "desc": "\nI am a chatbot that can answer questions about PDFs."
+    }
+    return render_chat_page(request, "chat_offer_stream", **meta)

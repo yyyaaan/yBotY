@@ -2,7 +2,7 @@
 [% extends "base.html" %]
 
 [% block head %] 
-<title>Chat with Doc</title>
+<title>[[title]]</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <style>
     .chat-card {
@@ -25,7 +25,7 @@
 
     <div id="row-info">
         <div v-if="message" @click="message=''" class="card yellow lighten-5">
-            <div class="card-content orange-text">{{message}}</div>
+            <div class="card-content orange-text">Error: {{message}}<br><small>{{debug}}</small></div>
             <div class="card-action"><a @click="message=''">Close</a></div>
         </div>
     </div>
@@ -68,7 +68,8 @@
                 userInput: '',
                 streamText: '',
                 message: '',
-                chat: [{"role": "sys", "content": "Welcome!"}]
+                debug: `SysInfo: ${url_chat}`,
+                chat: [{"role": "sys", "content": `Welcome![[desc]]`}]
             }
         },
 
