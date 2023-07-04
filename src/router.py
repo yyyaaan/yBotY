@@ -98,7 +98,7 @@ def render_chat_page(request: Request, name: str, **kwargs):
         endpoint = endpoint.replace("http://", "https://")
 
     return templates.TemplateResponse(
-        name="chat.html",
+        name="code.html" if "code" in name.lower() else "chat.html",
         context={"request": request, "endpoint": endpoint, **kwargs},
     )
 
@@ -124,3 +124,12 @@ def page_chat_one(request: Request):
         "desc": "\nI am a chatbot that can answer questions about PDFs."
     }
     return render_chat_page(request, "chat_offer_stream", **meta)
+
+
+@router.get("/code")
+def page_code_analysis(request: Request):
+    meta = {
+        "title": "Code Analysis",
+        "desc": "I am a chatbot that can answer questions about code."
+    }
+    return render_chat_page(request, "analyze_code_stream", **meta)

@@ -5,17 +5,21 @@
 <title>[[title]]</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <style>
-    .chat-card {
-        border-radius: 15px;
-        padding: 10px;
-        border: powderblue solid 3px;
-        margin-top: 10px;
-    }
     #row-info {
         z-index: 999999;
         position: fixed;
         top: 300px;
         width: 60%;
+    }
+    .input-box {
+        color: #333;
+        font-size: smaller;
+        white-space: pre;
+        overflow: auto;
+    }
+    #code-input {
+        font-family: monospace;
+        font-size: smaller;
     }
 </style>
 [% endblock %]
@@ -30,33 +34,56 @@
         </div>
     </div>
 
-    <div id="chat-bubbles" class="row">
-        <div v-for="msg in chat" :class="msg.role==='user'? 'col s8 push-s4' : 'col s8'" >
-            <div class="card-panel grey lighten-5" style="white-space: pre-wrap;">
-                {{ msg.content }}
+    <div v-for="one in codeAnalysis" class="row">
+        <div class="col s6">
+            <div class="card-panel grey lighten-2 input-box">
+                <pre>{{one.input}}</pre> 
             </div>
         </div>
-        <div v-if="streamText" class="col s8">
-            <div class="card-panel grey lighten-5" style="white-space: wrap;">
-                {{ streamText }}
+        <div class="col s6">
+            <div class="card-panel grey lighten-5" style="white-space: pre-wrap;">
+                {{one.output}}
             </div>
         </div>
 
     </div>
 
+    <div v-if="streamText" id="running-analysis" class="row">
+        <div class="col s6">
+            <div class="card-panel grey lighten-5 input-box">
+                <pre>{{streamInput}}</pre>
+            </div>
+        </div>
+        <div class="col s6">
+            <div class="card-panel grey lighten-5" style="white-space: wrap;">
+                {{ streamText }}
+            </div>
+        </div>
+    </div>
+
     <div id="chat-input" class="row valign-wrapper">
         <div class="input-field col s10">
-            <input type="text" v-model="userInput" @keyup.enter="sendInput">
+            <textarea id="code-input" class="materialize-textarea" data-length=2500
+                v-model="userInput" v-on:keypress.ctrl.enter="sendInput">
+            </textarea>
+            <label for="code-input">Type or Paste Code, press CTRL-Enter to send</label>
         </div>
         <div class="col s2" @click="sendInput">
             <i class="material-icons" style="font-size: 30px; color: lightblue">send</i>
         </div>
     </div>
 
+</div>
 [% endblock %]
 
 [% block vuejs %]
+
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var codeInputArea = document.querySelectorAll('textarea#code-input');
+        var instances = M.CharacterCounter.init(codeInputArea, {});
+    });
+
     var url_chat = "[[ endpoint ]]";
     console.log(url_chat)
 
@@ -66,10 +93,11 @@
         data() {
             return {
                 userInput: '',
+                streamInput: '',
                 streamText: '',
                 message: '',
                 debug: `SysInfo: ${url_chat}`,
-                chat: [{"role": "sys", "content": `Welcome![[desc]]`}]
+                codeAnalysis: [{"input": "console.log(\"hello user!\")\n//I am a Code Analyzer Bot", "output": "Code will be analyzed and suggest modifications if necessary"}]
             }
         },
 
@@ -83,16 +111,21 @@
                     this.message = "question too short."
                     return;
                 }
-                this.chat.push({"role": "user", "content": this.userInput});
-                this.streamText = "waiting for bot...";
+                if (this.userInput.length > 2500){
+                    this.message = "Input exceeding allowed length (2500 characters)"
+                    return;
+                }
 
+                this.streamInput = this.userInput
+                this.streamText = "analyzing...";
+                
                 const response = await fetch(url_chat, {
                     method: 'POST',
                     headers: {
                         'accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: `{"question": "${this.userInput}"}`
+                    body: `{"code": "${encodeURIComponent(this.userInput)}"}`
                 });
                 // starting streaming
                 this.userInput = "";
@@ -109,9 +142,13 @@
                 }
 
                 // finish
-                this.chat.push({"role": "sys", "content": this.streamText.replace("waiting for bot...", "")})
-                this.streamText = ""
-                this.scrollToBottom()
+                this.codeAnalysis.push({
+                    "input": this.streamInput, 
+                    "output": this.streamText.replace("analyzing...", "")
+                });
+                this.streamText = "";
+                this.streamInput = "";
+                this.scrollToBottom();
             },
 
             scrollToBottom() {
