@@ -25,6 +25,21 @@ templates = Jinja2Templates(
 router = APIRouter()
 
 
+def get_trace_callable(request: Request):
+    """
+    try to get tracing functionality from request.state
+    the callable is most likely to come from authentication dependency
+    """
+    trace_func = None
+    try:
+        trace_func = request.state.trace
+    except AttributeError:
+        pass
+    except Exception as e:
+        print(e)
+    return trace_func if callable(trace_func) else print
+
+
 # backends
 
 @router.post(
@@ -45,8 +60,12 @@ def analyze_code_stream(
     request: Request,
     payload: CodeAnalyzer.InputSchema
 ):
+    agent = CodeAnalyzer(
+        streaming=True,
+        trace_func=get_trace_callable(request)
+    )
     return StreamingResponse(
-        CodeAnalyzer(streaming=True).analyze_stream(payload.code),
+        agent.analyze_stream(payload.code),
         media_type="text/event-stream",
     )
 
@@ -60,7 +79,11 @@ def chat_about_me(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
-    return DocumentQA(db_name="yan-tietoevry-doc").ask(payload.question)
+    agent = DocumentQA(
+        db_name="yan-tietoevry-doc",
+        trace_func=get_trace_callable(request)
+    )
+    return agent.ask(payload.question)
 
 
 @router.post("/stream/chat-about-me", tags=["LLM Streaming Response"])
@@ -68,11 +91,13 @@ def chat_about_me_stream(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
+    agent = DocumentQA(
+        db_name="yan-tietoevry-doc",
+        streaming=True,
+        trace_func=get_trace_callable(request)
+    )
     return StreamingResponse(
-        DocumentQA(
-            db_name="yan-tietoevry-doc",
-            streaming=True
-        ).ask_stream(payload.question),
+        agent.ask_stream(payload.question),
         media_type="text/event-stream",
     )
 
@@ -82,7 +107,11 @@ def chat_offer_stream(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
-    agent = DocumentQA(db_name="kastelli", streaming=True)
+    agent = DocumentQA(
+        db_name="kastelli",
+        streaming=True,
+        trace_func=get_trace_callable(request)
+    )
     return StreamingResponse(
         agent.ask_stream(payload.question),
         media_type="text/event-stream",
@@ -103,7 +132,7 @@ def render_chat_page(request: Request, name: str, **kwargs):
     )
 
 
-@router.get("/chat")
+@router.get("/chat", tags=["Frontend"])
 def page_chat_me(request: Request):
     desc = """
     I am a chatbot that can tell about Yan Pan.
@@ -117,7 +146,7 @@ def page_chat_me(request: Request):
     )
 
 
-@router.get("/chat1")
+@router.get("/chat1", tags=["Frontend"])
 def page_chat_one(request: Request):
     meta = {
         "title": "PDF Chat",
@@ -126,7 +155,7 @@ def page_chat_one(request: Request):
     return render_chat_page(request, "chat_offer_stream", **meta)
 
 
-@router.get("/code")
+@router.get("/code", tags=["Frontend"])
 def page_code_analysis(request: Request):
     meta = {
         "title": "Code Analysis",

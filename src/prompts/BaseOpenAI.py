@@ -6,9 +6,11 @@ from langchain.schema import LLMResult
 from typing import AsyncIterable, Awaitable
 from botSettings.settings import Settings
 
+
 class BaseOpenAI:
     """
     base class that initialized chat or llm for langchain
+    tracing: callable function that takes dict as input - record OpenAI usage
     """
 
     def __init__(
@@ -17,11 +19,12 @@ class BaseOpenAI:
         model_name: str = "gpt-3.5-turbo",
         using_azure: bool = False,
         streaming: bool = False,
+        trace_func: callable = print,
         **kwargs,
     ):
-        print("Cache Info: initiated! I should be cached by LRU.")
         settings = Settings()
         self.openai_callback = OpenAICallbackHandler()
+        self.trace = trace_func  # callable
 
         if streaming:
             self.async_callback = AsyncIteratorCallbackHandler()
@@ -52,16 +55,21 @@ class BaseOpenAI:
                 model_name=model_name,
                 openai_api_key=settings.OPENAI_KEY
             )
+
         return None
 
     def collect_usage(self) -> dict:
         try:
-            return {
+            usage = {
+                "cls": self.__class__.__name__,
+                "streaming": self.llm.streaming,
                 "total_tokens": self.openai_callback.total_tokens,
                 "prompt_tokens": self.openai_callback.prompt_tokens,
                 "completion_tokens": self.openai_callback.completion_tokens,
                 "total_costs": self.openai_callback.total_cost,
             }
+            self.trace(usage)
+            return usage
         except Exception as e:
             print(e)
             return {}

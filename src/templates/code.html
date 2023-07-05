@@ -79,13 +79,12 @@
 [% block vuejs %]
 
 <script>
+
     document.addEventListener('DOMContentLoaded', function() {
         var codeInputArea = document.querySelectorAll('textarea#code-input');
         var instances = M.CharacterCounter.init(codeInputArea, {});
     });
-
     var url_chat = "[[ endpoint ]]";
-    console.log(url_chat)
 
     const {createApp} = Vue;
 
@@ -127,8 +126,8 @@
                     },
                     body: `{"code": "${encodeURIComponent(this.userInput)}"}`
                 });
-                // starting streaming
                 this.userInput = "";
+                // starting streaming
                 const reader = response.body.getReader();
                 while (true) {
                     const { done, value } = await reader.read();
@@ -153,8 +152,9 @@
 
             scrollToBottom() {
                 setTimeout(() => {
+                    M.textareaAutoResize(document.getElementById('code-input'));
                     document.getElementById("chat-input").scrollIntoView({ behavior: 'smooth', block: 'end' });
-                }, 900);
+                }, 1200);
             }
         }
     }).mount("#app");

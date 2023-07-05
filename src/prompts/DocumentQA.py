@@ -14,7 +14,7 @@ class DocumentQA(BaseOpenAI):
     See ChromaDB must be existing - create it using VectorDB.create_from_file
     """
 
-    CHAIN_TYPES = ["stuff", "map_reduce"]
+    CHAIN_TYPES = ["stuff", "map_reduce", "refine"]
 
     class InputSchema(BaseModel):
         question: str
@@ -23,24 +23,12 @@ class DocumentQA(BaseOpenAI):
         response: str
         metrics: dict = {}
 
-    def __init__(
-        self,
-        db_name: str,
-        chain_type: str = "stuff",
-        temperature: float = 0.0,
-        using_azure: bool = False,
-        streaming: bool = False,
-        **kwargs
-    ) -> None:
+    def __init__(self, db_name: str, chain_type: str = "stuff", **kwargs):
 
         if chain_type not in self.CHAIN_TYPES:
             raise ValueError(f"chain_type must be one of {self.CHAIN_TYPES}")
 
-        super().__init__(
-            temperature=temperature,
-            using_azure=using_azure,
-            streaming=streaming
-        )
+        super().__init__(**kwargs)
 
         settings = Settings()
         db = Chroma(
@@ -74,3 +62,4 @@ class DocumentQA(BaseOpenAI):
             yield token
 
         await task
+        _ = self.collect_usage()
