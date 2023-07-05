@@ -23,24 +23,12 @@ class DocumentQA(BaseOpenAI):
         response: str
         metrics: dict = {}
 
-    def __init__(
-        self,
-        db_name: str,
-        chain_type: str = "stuff",
-        temperature: float = 0.0,
-        using_azure: bool = False,
-        streaming: bool = False,
-        **kwargs
-    ) -> None:
+    def __init__(self, db_name: str, chain_type: str = "stuff", **kwargs):
 
         if chain_type not in self.CHAIN_TYPES:
             raise ValueError(f"chain_type must be one of {self.CHAIN_TYPES}")
 
-        super().__init__(
-            temperature=temperature,
-            using_azure=using_azure,
-            streaming=streaming
-        )
+        super().__init__(**kwargs)
 
         settings = Settings()
         db = Chroma(

@@ -24,7 +24,7 @@ class BaseOpenAI:
     ):
         settings = Settings()
         self.openai_callback = OpenAICallbackHandler()
-        self.trace = print  # callable
+        self.trace = trace_func  # callable
 
         if streaming:
             self.async_callback = AsyncIteratorCallbackHandler()

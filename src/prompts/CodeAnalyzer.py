@@ -23,13 +23,9 @@ class CodeAnalyzer(BaseOpenAI):
         exception: Optional[dict]
         metrics: Optional[dict]
 
-    def __init__(self, temperature=0.0, using_azure=False, streaming=False):
+    def __init__(self, **kwargs):
 
-        super().__init__(
-            temperature=temperature,
-            using_azure=using_azure,
-            streaming=streaming
-        )
+        super().__init__(**kwargs)
 
         self.template = ChatPromptTemplate.from_template("""
             Please determine the language of the code delimited \
