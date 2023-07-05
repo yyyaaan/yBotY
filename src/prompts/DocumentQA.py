@@ -14,7 +14,7 @@ class DocumentQA(BaseOpenAI):
     See ChromaDB must be existing - create it using VectorDB.create_from_file
     """
 
-    CHAIN_TYPES = ["stuff", "map_reduce"]
+    CHAIN_TYPES = ["stuff", "map_reduce", "refine"]
 
     class InputSchema(BaseModel):
         question: str

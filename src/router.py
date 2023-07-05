@@ -32,7 +32,7 @@ def get_trace_callable(request: Request):
     """
     trace_func = None
     try:
-        trace_func = request.state.x
+        trace_func = request.state.trace
     except AttributeError:
         pass
     except Exception as e:
