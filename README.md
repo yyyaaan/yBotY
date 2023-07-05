@@ -14,6 +14,11 @@ Two set of APIs:
 - sync API wait for all answers from LLM, often more structured
 - streaming APIs sends token immediately one available, only in string
 
+## Prerequisite and Settings
+
+At minimal, `BOT_OPENAI_KEY` is required. Environmental variables can be found [`settings.py`](/src/botSettings/settings.py) for all variables. Kindly noted that the name is not OpenAI default.
+
+Major configurable options are also listed in [`settings.py`](/src/botSettings/settings.py).
 
 ## Chat with Documents
 
