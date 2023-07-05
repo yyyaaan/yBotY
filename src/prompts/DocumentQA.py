@@ -74,3 +74,4 @@ class DocumentQA(BaseOpenAI):
             yield token
 
         await task
+        _ = self.collect_usage()

@@ -80,3 +80,4 @@ class CodeAnalyzer(BaseOpenAI):
             yield token
 
         await task
+        _ = self.collect_usage()
