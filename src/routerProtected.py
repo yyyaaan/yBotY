@@ -1,11 +1,22 @@
 # Yan Pan, 2023
 from fastapi import APIRouter, HTTPException, File, Request, UploadFile
 from os import listdir
+
 from botSettings.settings import Settings
 from prompts.VectorStorage import VectorStorage
+from router import templates
 
 router_admin_only = APIRouter()
 file_dir = Settings().UPLOAD_PATH
+
+
+@router_admin_only.get("/admin")
+def admin_panel(request: Request):
+    """Admin panel"""
+    return templates.TemplateResponse(
+        name="bot/admin.html",
+        context={"request": request}
+    )
 
 
 @router_admin_only.get("/list-uploaded-files", response_model=list[str])
@@ -69,3 +80,18 @@ def delete_collection(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"{payload.collection_name} deleted"}
+
+
+@router_admin_only.post("/delete-file")
+def delete_file(
+    request: Request,
+    payload: VectorStorage.InputDelFileSchema
+):
+    """Delete a collection from Chroma DB"""
+    try:
+        VectorStorage.delete_filesystem_file(
+            filename=payload.filename
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"message": f"{payload.filename} deleted"}

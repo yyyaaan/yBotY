@@ -23,6 +23,18 @@ class VectorStorage:
     class InputDelSchema(BaseModel):
         collection_name: str
 
+    class InputDelFileSchema(BaseModel):
+        filename: str
+
+    @staticmethod
+    def delete_filesystem_file(filename):
+        print("entering here!")
+        upload_dir = Settings().UPLOAD_PATH
+        if upload_dir not in filename:
+            filename = f"{upload_dir}/{filename}"
+        system(f'rm -f "{filename}"')
+        return None
+
     @staticmethod
     def chroma_create_persistent_collection(
         source_file: str,
@@ -72,7 +84,9 @@ class VectorStorage:
         return None
 
     @staticmethod
-    def chroma_delete_persistent_collection(collection_name: str, use_chroma=False):
+    def chroma_delete_persistent_collection(
+        collection_name: str, use_chroma=False
+    ):
         """
         delete a Chroma collection, and flush the folder
         """
@@ -85,7 +99,7 @@ class VectorStorage:
                 embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
                 persist_directory=collection_dir,
             )
-            print(f"deleting Chroma DB Collection {vector_db._collection.name}")
+            print(f"DEL Chroma DB Collection {vector_db._collection.name}")
             vector_db.delete_collection()
 
         print("clear filesystem")
