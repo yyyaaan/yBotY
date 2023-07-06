@@ -101,8 +101,10 @@ def chat_about_me_stream(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
+
     agent = DocumentQA(
-        db_name="yan-tietoevry-doc",
+        db_name="yan-tietoevry-doc" if payload.collection == "default" else payload.collection,  # noqa: E501
+        temperature=payload.temperature,
         streaming=True,
         trace_func=get_trace_callable(request)
     )
@@ -118,7 +120,8 @@ def chat_offer_stream(
     payload: DocumentQA.InputSchema
 ):
     agent = DocumentQA(
-        db_name="kastelli",
+        db_name="kastelli" if payload.collection == "default" else payload.collection,  # noqa: E501
+        temperature=payload.temperature,
         streaming=True,
         trace_func=get_trace_callable(request)
     )
@@ -132,13 +135,19 @@ def chat_offer_stream(
 
 def render_chat_page(request: Request, name: str, **kwargs):
     endpoint = str(request.url_for(name))
+    endpoint2 = str(request.url_for("list_chroma_collections"))
 
     if "localhost" not in endpoint:
         endpoint = endpoint.replace("http://", "https://")
+        endpoint2 = endpoint.replace("http://", "https://")
 
     return templates.TemplateResponse(
         name="bot/code.html" if "code" in name.lower() else "bot/chat.html",
-        context={"request": request, "endpoint": endpoint, **kwargs},
+        context={
+            "request": request,
+            "endpoint": endpoint, "endpoint2": endpoint2,
+            **kwargs
+        },
     )
 
 

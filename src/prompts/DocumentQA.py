@@ -18,6 +18,8 @@ class DocumentQA(BaseOpenAI):
 
     class InputSchema(BaseModel):
         question: str
+        collection: str = "default"
+        temperature: float = 0.1
 
     class OutputSchema(BaseModel):
         response: str

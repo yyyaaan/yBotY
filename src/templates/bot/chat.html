@@ -17,6 +17,9 @@
         top: 300px;
         width: 60%;
     }
+    select, .mute{
+        color: lightgray;
+    }
 </style>
 [% endblock %]
 
@@ -27,6 +30,28 @@
         <div v-if="message" @click="message=''" class="card yellow lighten-5">
             <div class="card-content orange-text">Error: {{message}}<br><small>{{debug}}</small></div>
             <div class="card-action"><a @click="message=''">Close</a></div>
+        </div>
+    </div>
+
+    <div id="db-selection" class="row valign-wrapper">
+        <div class="col s6 right-align" @click="showConfig=1-showConfig">
+            <p class="mute" style="text-decoration: underline;">
+                <span v-if="showConfig">Close </span>
+                <span v-else>Open LLM Options</span>
+                
+            </p>
+        </div>
+        <div v-if="showConfig" class="col s3 right-align">
+            <label>LLM Temperature</label>
+            <select class="browser-default" v-model="selectedTemperature">
+                <option v-for="t in [0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]">{{t}}</option>
+            </select>
+        </div>
+        <div v-if="showConfig" class="col s3 right-align">
+            <label>Vector Database Selection</label>
+            <select class="browser-default" v-model="selectedCollection">
+                <option v-for="c in collections" :value="c">{{c}}</option>
+            </select>
         </div>
     </div>
 
@@ -58,6 +83,7 @@
 [% block vuejs %]
 <script>
     var url_chat = "[[ endpoint ]]";
+    var url_collections = "[[ endpoint2 ]]"
     console.log(url_chat)
 
     const {createApp} = Vue;
@@ -69,11 +95,18 @@
                 streamText: '',
                 message: '',
                 debug: `SysInfo: ${url_chat}`,
-                chat: [{"role": "sys", "content": `Welcome![[desc]]`}]
+                showConfig: 0,
+                chat: [{"role": "sys", "content": `Welcome![[desc]]`}],
+                collections: ["aa", "bb", "cc"],
+                selectedCollection: "default",
+                selectedTemperature: 0.1
             }
         },
 
         created() {
+            fetch(url_collections)
+                .then(response => response.json())
+                .then(data => this.collections=data)
         },
 
         methods: {
@@ -92,7 +125,7 @@
                         'accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: `{"question": "${this.userInput}"}`
+                    body: `{"question": "${this.userInput}", "collection": "${this.selectedCollection}", "temperature": ${this.selectedTemperature}}`
                 });
                 // starting streaming
                 this.userInput = "";
