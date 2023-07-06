@@ -137,9 +137,9 @@ def render_chat_page(request: Request, name: str, **kwargs):
     endpoint = str(request.url_for(name))
     endpoint2 = str(request.url_for("list_chroma_collections"))
 
-    if "localhost" not in endpoint:
-        endpoint = endpoint.replace("http://", "https://")
-        endpoint2 = endpoint.replace("http://", "https://")
+    # if "localhost" not in endpoint:
+    #     endpoint = endpoint.replace("http://", "https://")
+    #     endpoint2 = endpoint.replace("http://", "https://")
 
     return templates.TemplateResponse(
         name="bot/code.html" if "code" in name.lower() else "bot/chat.html",
