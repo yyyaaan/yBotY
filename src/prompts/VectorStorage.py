@@ -2,6 +2,10 @@
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
+from os import system
+from pydantic import BaseModel
+
+
 # Loaders are imported only when necessary
 
 from botSettings.settings import Settings
@@ -12,14 +16,33 @@ class VectorStorage:
     In support of NLP, stores the vector representations of documents
     """
 
+    class InputSchema(BaseModel):
+        source_file: str
+        collection_name: str
+
+    class InputDelSchema(BaseModel):
+        collection_name: str
+
+    class InputDelFileSchema(BaseModel):
+        filename: str
+
     @staticmethod
-    def chroma_create_persistent_db(
+    def delete_filesystem_file(filename):
+        print("entering here!")
+        upload_dir = Settings().UPLOAD_PATH
+        if upload_dir not in filename:
+            filename = f"{upload_dir}/{filename}"
+        system(f'rm -f "{filename}"')
+        return None
+
+    @staticmethod
+    def chroma_create_persistent_collection(
         source_file: str,
-        db_name: str
+        collection_name: str
     ) -> None:
         """
         embed a document (html, txt, doc) to vector and save to database
-        db_name is also the folder name
+        collection_name is also the folder name
         """
         source_file_ext = source_file.split(".")[-1].lower()
 
@@ -53,7 +76,7 @@ class VectorStorage:
         vector_db = Chroma.from_documents(
             documents=texts,
             embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY),
-            persist_directory=f"{settings.CHROMA_PATH}/{db_name}",
+            persist_directory=f"{settings.CHROMA_PATH}/{collection_name}",
         )
         vector_db.persist()
         del vector_db
@@ -61,15 +84,23 @@ class VectorStorage:
         return None
 
     @staticmethod
-    def chroma_delete_persistent_db(db_name: str):
+    def chroma_delete_persistent_collection(
+        collection_name: str, use_chroma=False
+    ):
         """
-        delete a Chroma collection (i.e. the db)
-        it is generally UNnecessary, flush the folder suffices
+        delete a Chroma collection, and flush the folder
         """
         settings = Settings()
-        vector_db = Chroma(
-            embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
-            persist_directory=f"{settings.CHROMA_PATH}/{db_name}",
-        )
-        print(f"Deleting persistent Chroma db {vector_db._collection.name}")
-        vector_db.delete_collection()
+        collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
+
+        if use_chroma:
+            # generally unnecessary
+            vector_db = Chroma(
+                embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
+                persist_directory=collection_dir,
+            )
+            print(f"DEL Chroma DB Collection {vector_db._collection.name}")
+            vector_db.delete_collection()
+
+        print("clear filesystem")
+        system(f"rm -rf {collection_dir}")

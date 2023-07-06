@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     AZ_OPENAI_VERSION: str = "2023-05-15"
     AZ_OPENAI_DEPLOYMENT: str = "gpt4"
     CHROMA_PATH: str = "/mnt/shared/chroma/"
+    UPLOAD_PATH: str = "/mnt/shared/upload/"
 
     class Config:
         env_prefix = "BOT_"

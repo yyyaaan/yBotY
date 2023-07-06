@@ -41,7 +41,7 @@ def get_trace_callable(request: Request):
 # backends
 @router.get(
     path="/list-collections",
-    tags=["LLM Structured Answer", "LLM Streaming Response"],
+    tags=["LLM Structured Answer", "LLM Streaming Response", "LLM Admin"],
     response_model=list[str]
 )
 def list_chroma_collections(request: Request):
@@ -134,18 +134,12 @@ def chat_offer_stream(
 # minimal frontend
 
 def render_chat_page(request: Request, name: str, **kwargs):
-    endpoint = str(request.url_for(name))
-    endpoint2 = str(request.url_for("list_chroma_collections"))
-
-    # if "localhost" not in endpoint:
-    #     endpoint = endpoint.replace("http://", "https://")
-    #     endpoint2 = endpoint.replace("http://", "https://")
-
     return templates.TemplateResponse(
         name="bot/code.html" if "code" in name.lower() else "bot/chat.html",
         context={
             "request": request,
-            "endpoint": endpoint, "endpoint2": endpoint2,
+            "endpoint": str(request.url_for(name)),
+            "endpoint2": str(request.url_for("list_chroma_collections")),
             **kwargs
         },
     )
