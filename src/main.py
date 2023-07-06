@@ -10,7 +10,7 @@ app = FastAPI()
 @app.get("/")
 def index(request: Request):
     return templates.TemplateResponse(
-        "index.html", context={"request": request}
+        "bot/index.html", context={"request": request}
     )
 
 

@@ -2,18 +2,16 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
+from glob import glob
 
 from prompts.CodeAnalyzer import CodeAnalyzer
 from prompts.DocumentQA import DocumentQA
+from botSettings.settings import Settings
 
-from os.path import exists
-
-
-dir = "./appbot/templates/" \
-    if exists("./appbot/templates/index.html") else "./templates"
 
 templates = Jinja2Templates(
-    directory=dir,
+    # require copy ./templates/bot to parent app
+    directory="./templates",
     block_start_string='[%',
     block_end_string='%]',
     variable_start_string='[[',
@@ -41,6 +39,18 @@ def get_trace_callable(request: Request):
 
 
 # backends
+@router.get(
+    path="/list-collections",
+    tags=["LLM Structured Answer", "LLM Streaming Response"],
+    response_model=list[str]
+)
+def list_chroma_collections(request: Request):
+    """
+    List available collection names in the Chroma DB\n
+    The return name can be used for documentQA (/chat) parameters.
+    """
+    return [x.split("/")[-1] for x in glob(f"{Settings().CHROMA_PATH}/*")]
+
 
 @router.post(
     "/code",
@@ -91,8 +101,10 @@ def chat_about_me_stream(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
+
     agent = DocumentQA(
-        db_name="yan-tietoevry-doc",
+        db_name="yan-tietoevry-doc" if payload.collection == "default" else payload.collection,  # noqa: E501
+        temperature=payload.temperature,
         streaming=True,
         trace_func=get_trace_callable(request)
     )
@@ -108,7 +120,8 @@ def chat_offer_stream(
     payload: DocumentQA.InputSchema
 ):
     agent = DocumentQA(
-        db_name="kastelli",
+        db_name="kastelli" if payload.collection == "default" else payload.collection,  # noqa: E501
+        temperature=payload.temperature,
         streaming=True,
         trace_func=get_trace_callable(request)
     )
@@ -122,13 +135,19 @@ def chat_offer_stream(
 
 def render_chat_page(request: Request, name: str, **kwargs):
     endpoint = str(request.url_for(name))
+    endpoint2 = str(request.url_for("list_chroma_collections"))
 
-    if "localhost" not in endpoint:
-        endpoint = endpoint.replace("http://", "https://")
+    # if "localhost" not in endpoint:
+    #     endpoint = endpoint.replace("http://", "https://")
+    #     endpoint2 = endpoint.replace("http://", "https://")
 
     return templates.TemplateResponse(
-        name="code.html" if "code" in name.lower() else "chat.html",
-        context={"request": request, "endpoint": endpoint, **kwargs},
+        name="bot/code.html" if "code" in name.lower() else "bot/chat.html",
+        context={
+            "request": request,
+            "endpoint": endpoint, "endpoint2": endpoint2,
+            **kwargs
+        },
     )
 
 
