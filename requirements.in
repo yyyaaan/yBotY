@@ -7,3 +7,4 @@ langchain
 unstructured
 chromadb
 tiktoken
+python-multipart

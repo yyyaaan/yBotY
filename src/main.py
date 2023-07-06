@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Request
 
 from router import templates, router
+from routerProtected import router_admin_only
 
 app = FastAPI()
 
@@ -15,3 +16,4 @@ def index(request: Request):
 
 
 app.include_router(router)
+app.include_router(router_admin_only, prefix="/admin", tags=["LLM Admin"])
