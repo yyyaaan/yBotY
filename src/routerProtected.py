@@ -68,9 +68,4 @@ def delete_collection(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
     return {"message": f"{payload.collection_name} deleted"}
-(
-    "message"
-    "is ok"
-)

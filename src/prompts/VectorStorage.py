@@ -2,6 +2,7 @@
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
+from os import system
 from pydantic import BaseModel
 
 
@@ -71,15 +72,21 @@ class VectorStorage:
         return None
 
     @staticmethod
-    def chroma_delete_persistent_collection(collection_name: str):
+    def chroma_delete_persistent_collection(collection_name: str, use_chroma=False):
         """
-        delete a Chroma collection (i.e. the db)
-        it is generally UNnecessary, flush the folder suffices
+        delete a Chroma collection, and flush the folder
         """
         settings = Settings()
-        vector_db = Chroma(
-            embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
-            persist_directory=f"{settings.CHROMA_PATH}/{collection_name}",
-        )
-        print(f"Deleting persistent Chroma db {vector_db._collection.name}")
-        vector_db.delete_collection()
+        collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
+
+        if use_chroma:
+            # generally unnecessary
+            vector_db = Chroma(
+                embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
+                persist_directory=collection_dir,
+            )
+            print(f"deleting Chroma DB Collection {vector_db._collection.name}")
+            vector_db.delete_collection()
+
+        print("clear filesystem")
+        system(f"rm -rf {collection_dir}")
