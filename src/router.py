@@ -20,7 +20,9 @@ templates = Jinja2Templates(
     comment_end_string='#}',
 )
 
+# using two routers for possible fine-tuned auth level
 router = APIRouter()
+router_me = APIRouter()
 
 
 def get_trace_callable(request: Request):
@@ -39,6 +41,22 @@ def get_trace_callable(request: Request):
 
 
 # backends
+@router_me.post(
+    "/chat-about-me",
+    tags=["LLM Structured Answer"],
+    response_model=DocumentQA.OutputSchema
+)
+def chat_about_me(
+    request: Request,
+    payload: DocumentQA.InputSchema
+):
+    agent = DocumentQA(
+        db_name="about-me" if payload.collection == "default" else payload.collection,  # noqa: E501
+        trace_func=get_trace_callable(request)
+    )
+    return agent.ask(payload.question)
+
+
 @router.get(
     path="/list-collections",
     tags=["LLM Structured Answer", "LLM Streaming Response", "LLM Admin"],
@@ -80,30 +98,14 @@ def analyze_code_stream(
     )
 
 
-@router.post(
-    "/chat-about-me",
-    tags=["LLM Structured Answer"],
-    response_model=DocumentQA.OutputSchema
-)
-def chat_about_me(
-    request: Request,
-    payload: DocumentQA.InputSchema
-):
-    agent = DocumentQA(
-        db_name="yan-tietoevry-doc",
-        trace_func=get_trace_callable(request)
-    )
-    return agent.ask(payload.question)
-
-
-@router.post("/stream/chat-about-me", tags=["LLM Streaming Response"])
+@router_me.post("/stream/chat-about-me", tags=["LLM Streaming Response"])
 def chat_about_me_stream(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
 
     agent = DocumentQA(
-        db_name="yan-tietoevry-doc" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_name="about-me" if payload.collection == "default" else payload.collection,  # noqa: E501
         temperature=payload.temperature,
         streaming=True,
         trace_func=get_trace_callable(request)
@@ -145,7 +147,7 @@ def render_chat_page(request: Request, name: str, **kwargs):
     )
 
 
-@router.get("/chat", tags=["Frontend"])
+@router_me.get("/chat", tags=["Frontend"])
 def page_chat_me(request: Request):
     desc = """
     I am a chatbot that can tell about Yan Pan.

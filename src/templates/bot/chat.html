@@ -59,6 +59,10 @@
         <div v-for="msg in chat" :class="msg.role==='user'? 'col s8 push-s4' : 'col s8'" >
             <div class="card-panel grey lighten-5" style="white-space: pre-wrap;">
                 {{ msg.content }}
+                <br/>
+                <div class="right-align">
+                    <div v-for="tag in msg.tags" class="chip">{{tag}}</div>
+                </div>
             </div>
         </div>
         <div v-if="streamText" class="col s8">
@@ -95,7 +99,7 @@
                 message: '',
                 debug: `SysInfo: ${url_chat}`,
                 showConfig: 0,
-                chat: [{"role": "sys", "content": `Welcome![[desc]]`}],
+                chat: [{"role": "sys", "content": `Welcome![[desc]]`, "tags": []}],
                 collections: ["aa", "bb", "cc"],
                 selectedCollection: "default",
                 selectedTemperature: 0.1
@@ -118,13 +122,14 @@
                 this.chat.push({"role": "user", "content": this.userInput});
                 this.streamText = "waiting for bot...";
 
+                collection = this.selectedCollection;
                 const response = await fetch(url_chat, {
                     method: 'POST',
                     headers: {
                         'accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: `{"question": "${this.userInput}", "collection": "${this.selectedCollection}", "temperature": ${this.selectedTemperature}}`
+                    body: `{"question": "${this.userInput}", "collection": "${collection}", "temperature": ${this.selectedTemperature}}`
                 });
                 // starting streaming
                 this.userInput = "";
@@ -141,7 +146,12 @@
                 }
 
                 // finish
-                this.chat.push({"role": "sys", "content": this.streamText.replace("waiting for bot...", "")})
+                this.chat.push({
+                    "role": "sys", 
+                    "content": this.streamText.replace("waiting for bot...", ""),
+                    "tags": collection == "default" ? [] : [`source: ${collection}`]
+                    
+                })
                 this.streamText = ""
                 this.scrollToBottom()
             },

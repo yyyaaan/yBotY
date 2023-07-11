@@ -39,44 +39,52 @@
             <div class="card">
                 <div class="card-content orange-text">
                     <div v-for="f in files" class="chip">
-                        {{f}} &nbsp;&nbsp; 
+                        {{f}} &nbsp;&nbsp;&nbsp; 
                         <i class="tiny material-icons" @click="createCollection(f)">add_to_photos</i>
                         &nbsp;
                         <i class="tiny material-icons" @click="deleteFile(f)">close</i>
                     </div>
                 </div>                
-                <div class="card-action">Uploaded Files</div>
+                <div class="card-action">
+                    Available Files &nbsp;&nbsp;
+                    <a v-if="!showUpload" @click="showUpload=1">add new</a>
+                    <a v-if="showUpload" @click="showUpload=0">collapse</a>
+                    <div v-if="showUpload" id="upload-file" class="row">
+                        <div class="file-field input-field">
+                            <div class="btn-small">
+                                <span>upload</span>
+                                <input type="file" @change="handleFileUpload">
+                            </div>
+                            <div class="file-path-wrapper">
+                                <input class="file-path validate" type="text">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
         <div class="col s12 m6">
             <div class="card">
                 <div class="card-content orange-text">
                     <div v-for="c in collections" class="chip">
-                        {{c}} &nbsp;&nbsp; 
+                        {{c}} &nbsp;&nbsp;&nbsp; 
                         <i class="tiny material-icons" @click="deleteCollection(c)">close</i>
                     </div>
                 </div>                
-                <div class="card-action">Embedded Vector Collections</div>
+                <div class="card-action">
+                    Embedded Vector Collections &nbsp;&nbsp;
+                    <a v-if="!showUpload" @click="showUpload=1">info</a>
+                    <a v-if="showUpload" @click="showUpload=0">collapse</a>
+                    <blockquote v-if="showUpload">
+                        required: <code>about-me</code>
+                    </blockquote>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="upload-file" class="row">
-        <div v-if="uploadInfo" @click="uploadInfo=''" class="card">
-            <div class="card-content orange-text">File upload<br/>{{uploadInfo}}</div>
-            <div class="card-action"><a @click="message=''">Close</a></div>
-        </div>
-        <div class="file-field input-field">
-          <div class="btn">
-            <span>Upload File</span>
-            <input type="file" @change="handleFileUpload">
-          </div>
-          <div class="file-path-wrapper">
-            <input class="file-path validate" type="text">
-          </div>
-        </div>
-      </div>
-    </div>
+
 [% endblock %]
 
 [% block vuejs %]
@@ -99,9 +107,9 @@
                 files: ["ad.pdf", "bc.daf"],
                 collections: ["a", "b"],
                 isLoading: 0,
+                showUpload: 0,
                 message: '',
                 debug: '',
-                uploadInfo: ''
             }
         },
 
@@ -189,11 +197,11 @@
                 fetch(url_upload, {method: 'POST', body: formData})
                     .then(response => {
                         if (response.status == 413) {
-                            this.uploadInfo = "Fail! file size too large!";
+                            this.message = "Fail! file size too large!";
                         } else if (response.status < 300) {
-                            this.uploadInfo = "upload completed ok.";
+                            this.message = "upload completed ok.";
                         } else {
-                            this.uploadInfo = "Warning: unknown exception";
+                            this.message = "Warning: unknown exception";
                         }
                         this.listFiles();
                         this.listCollections();

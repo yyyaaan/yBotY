@@ -62,7 +62,7 @@ def create_collection_from_file(
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": (
-        f"{payload.collection_name}"
+        f"{payload.collection_name} "
         f"created from {payload.source_file}"
     )}
 
