@@ -4,7 +4,10 @@ uvicorn
 jinja2
 openai
 langchain
-unstructured
-chromadb
 tiktoken
 python-multipart
+beautifulsoup4
+unstructured>=0.8.0
+pydantic>=1.10.11
+# chromadb 0.3.27 sets FastAPI too low!
+chromadb==0.3.26
