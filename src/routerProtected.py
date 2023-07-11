@@ -37,6 +37,7 @@ async def upload_file(
         with open(destination, "wb") as f:
             f.write(contents)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"filename": destination}
@@ -59,6 +60,7 @@ def create_collection_from_file(
             collection_name=payload.collection_name,
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": (
@@ -78,6 +80,7 @@ def delete_collection(
             collection_name=payload.collection_name
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"{payload.collection_name} deleted"}
 
@@ -93,5 +96,6 @@ def delete_file(
             filename=payload.filename
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"{payload.filename} deleted"}

@@ -38,17 +38,30 @@ class VectorStorage:
     @staticmethod
     def chroma_create_persistent_collection(
         source_file: str,
-        collection_name: str
+        collection_name: str,
+        is_web_url: bool = False
     ) -> None:
         """
         embed a document (html, txt, doc) to vector and save to database
+        when is_web_url is true, shortcut to download and parse file
         collection_name is also the folder name
         """
+
         source_file_ext = source_file.split(".")[-1].lower()
 
+        if is_web_url:
+            source_file_ext = "skip"
+            from langchain.document_loaders import WebBaseLoader
+            loader = WebBaseLoader(source_file)
+
         if source_file_ext in ["html", "htm"]:
-            from langchain.document_loaders import UnstructuredHTMLLoader
-            loader = UnstructuredHTMLLoader(source_file)
+            # from langchain.document_loaders import UnstructuredHTMLLoader
+            # default require extra package, so parse the kwargs
+            from langchain.document_loaders import BSHTMLLoader
+            loader = BSHTMLLoader(
+                file_path=source_file,
+                bs_kwargs={"features": "html.parser"}
+            )
 
         if source_file_ext in ["doc", "docx"]:
             from langchain.document_loaders import UnstructuredWordDocumentLoader  # noqa

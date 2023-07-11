@@ -2,7 +2,7 @@
 # router is used for easy-mount in parent app
 from fastapi import FastAPI, Request
 
-from router import templates, router
+from router import templates, router, router_me
 from routerProtected import router_admin_only
 
 app = FastAPI()
@@ -16,4 +16,5 @@ def index(request: Request):
 
 
 app.include_router(router)
+app.include_router(router_me)
 app.include_router(router_admin_only, prefix="/admin", tags=["LLM Admin"])
