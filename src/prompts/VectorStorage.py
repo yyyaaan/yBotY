@@ -5,7 +5,6 @@ from langchain.vectorstores import Chroma
 from os import system
 from pydantic import BaseModel
 
-
 # Loaders are imported only when necessary
 
 from botSettings.settings import Settings
@@ -49,12 +48,13 @@ class VectorStorage:
 
         source_file_ext = source_file.split(".")[-1].lower()
 
+        # from langchain.document_loaders import DataFrameLoader
+
         if is_web_url:
-            source_file_ext = "skip"
             from langchain.document_loaders import WebBaseLoader
             loader = WebBaseLoader(source_file)
 
-        if source_file_ext in ["html", "htm"]:
+        elif source_file_ext in ["html", "htm"]:
             # from langchain.document_loaders import UnstructuredHTMLLoader
             # default require extra package, so parse the kwargs
             from langchain.document_loaders import BSHTMLLoader
@@ -63,21 +63,28 @@ class VectorStorage:
                 bs_kwargs={"features": "html.parser"}
             )
 
-        if source_file_ext in ["doc", "docx"]:
+        elif source_file_ext in ["csv"]:
+            from langchain.document_loaders import UnstructuredCSVLoader
+            loader = UnstructuredCSVLoader(source_file)
+
+        elif source_file_ext in ["doc", "docx"]:
             from langchain.document_loaders import UnstructuredWordDocumentLoader  # noqa
             loader = UnstructuredWordDocumentLoader(source_file)
 
-        if source_file_ext in ["pdf"]:
+        elif source_file_ext in ["pdf"]:
             from langchain.document_loaders import UnstructuredPDFLoader
             loader = UnstructuredPDFLoader(source_file)
 
-        if source_file_ext in ["md"]:
+        elif source_file_ext in ["md"]:
             from langchain.document_loaders import UnstructuredMarkdownLoader  # noqa
             loader = UnstructuredMarkdownLoader(source_file)
 
-        if source_file_ext in ["txt"]:
+        elif source_file_ext in ["txt"]:
             from langchain.document_loaders import TextLoader
             loader = TextLoader(source_file)
+
+        else:
+            raise ValueError("Unsupported file type")
 
         documents = loader.load()
         texts = RecursiveCharacterTextSplitter(
