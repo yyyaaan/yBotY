@@ -114,7 +114,6 @@ class VectorStorage:
         collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
 
         if use_chroma:
-            # generally unnecessary
             vector_db = Chroma(
                 embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
                 persist_directory=collection_dir,
@@ -122,5 +121,4 @@ class VectorStorage:
             print(f"DEL Chroma DB Collection {vector_db._collection.name}")
             vector_db.delete_collection()
 
-        print("clear filesystem")
         system(f"rm -rf {collection_dir}")

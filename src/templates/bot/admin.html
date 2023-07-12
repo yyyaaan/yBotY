@@ -35,7 +35,7 @@
             <div class="progress"><div class="indeterminate"></div></div>
         </div>
               
-        <div class="col s12 m6">
+        <div class="col m12 l6">
             <div class="card">
                 <div class="card-content orange-text">
                     <div v-for="f in files" class="chip">
@@ -64,7 +64,7 @@
             </div>
         </div>
 
-        <div class="col s12 m6">
+        <div class="col m12 l6">
             <div class="card">
                 <div class="card-content orange-text">
                     <div v-for="c in collections" class="chip">
@@ -77,7 +77,7 @@
                     <a v-if="!showUpload" @click="showUpload=1">info</a>
                     <a v-if="showUpload" @click="showUpload=0">collapse</a>
                     <blockquote v-if="showUpload">
-                        required: <code>about-me</code>
+                        required: <code>aboutme</code>
                     </blockquote>
                 </div>
             </div>

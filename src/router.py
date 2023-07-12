@@ -56,7 +56,7 @@ def chat_document(
     document must be registered to Chroma DB collection. See /list-collections.
     """
     agent = DocumentQA(
-        db_name="about-me" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
         trace_func=get_trace_callable(request)
     )
     return agent.ask(payload.question)
@@ -138,7 +138,7 @@ def chat_about_me_stream(
 ):
 
     agent = DocumentQA(
-        db_name="about-me" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
         temperature=payload.temperature,
         streaming=True,
         trace_func=get_trace_callable(request)

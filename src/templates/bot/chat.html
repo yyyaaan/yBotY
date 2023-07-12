@@ -55,18 +55,18 @@
     </div>
 
     <div id="chat-bubbles" class="row">
-        <div v-for="msg in chat" :class="msg.role==='user'? 'col s8 push-s4' : 'col s8'" >
+        <div v-for="msg in chat" :class="msg.role==='user'? 'col s9 push-s3' : 'col s9'" >
             <div class="card-panel grey lighten-5" style="white-space: pre-wrap;">
                 {{ msg.content }}
                 <br/>
                 <div class="right-align">
-                    <div v-for="tag in msg.tags" class="chip">{{tag}}</div>
+                    <div v-for="tag in msg.tags" class="chip" style="font-size: xx-small;">{{tag}}</div>
                 </div>
             </div>
         </div>
 
 
-        <div v-if="showInputBox" class="col s8 push-s4">
+        <div v-if="showInputBox" class="col s9 push-s3">
             <div v-if="isLoading" class="col s12">
                 <div class="progress"><div class="indeterminate"></div></div>
                 <p>reading webpage and embedding the words... please wait</p>
@@ -80,7 +80,7 @@
             </div>
         </div>
 
-        <div v-if="streamText" class="col s8">
+        <div v-if="streamText" class="col s9">
             <div class="card-panel grey lighten-5" style="white-space: wrap;">
                 {{ streamText }}
             </div>
@@ -193,7 +193,7 @@
 
             setInputURL() {
                 console.log(this.inputURL);
-                this.selectedCollection = `tmp-${cyrb53(this.inputURL)}`;
+                this.selectedCollection = `tmp${cyrb53(this.inputURL)}`;
                 this.isLoading = 1;
 
                 fetch(urlCreateCollection, {
@@ -226,7 +226,7 @@
 
             assignTags(collection) {
                 if (this.inputURL.length) {
-                    return [`source: ${this.inputURL}`, `${this.selectedCollection.replace('tmp-', '')}`]
+                    return [`source: ${this.inputURL}`, `${this.selectedCollection.replace('tmp', '')}`]
                 }
                 if (collection == "default") {
                     return []
