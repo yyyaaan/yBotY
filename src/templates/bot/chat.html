@@ -64,6 +64,22 @@
                 </div>
             </div>
         </div>
+
+
+        <div v-if="showInputBox" class="col s8 push-s4">
+            <div v-if="isLoading" class="col s12">
+                <div class="progress"><div class="indeterminate"></div></div>
+                <p>reading webpage and embedding the words... please wait</p>
+            </div>
+    
+            <div v-if="!isLoading" class="card-panel grey lighten-5" style="white-space: pre-wrap;">
+                <div class="row">
+                    <div class="col s10"><input v-model="inputURL" placeholder="paste the web URL here"></div>
+                    <div class="col s2 btn-small" @click="setInputURL">set</div>
+                </div>
+            </div>
+        </div>
+
         <div v-if="streamText" class="col s8">
             <div class="card-panel grey lighten-5" style="white-space: wrap;">
                 {{ streamText }}
@@ -71,7 +87,7 @@
         </div>
     </div>
 
-    <div id="chat-input" class="row valign-wrapper">
+    <div v-if="!showInputBox" id="chat-input" class="row valign-wrapper">
         <div class="input-field col s10">
             <input type="text" v-model="userInput" @keyup.enter="sendInput">
         </div>
@@ -85,9 +101,28 @@
 [% block vuejs %]
 <script>
     const urlChat = "[[ endpoint ]]";
-    const urlCollections = "[[ endpoint2 ]]";
+    const urlCollections = "[[  url_for('list_chroma_collections') ]]";
+    const urlCreateCollection = "[[  url_for('create_collection_from_file') ]]";
     const allowDbSelection = [% if allow_db_selection %][[ allow_db_selection ]][% else %]0[% endif %];
     const allowInputField = [% if allow_input_field %][[ allow_input_field ]][% else %]0[% endif %];
+
+    const cyrb53 = (str, seed = 0) => {
+        // generate hash from input
+        let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+        for(let i = 0, ch; i < str.length; i++) {
+            ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1  = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2  = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    
+        // return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+        return (h2>>>0).toString(16).padStart(8,0)+(h1>>>0).toString(16).padStart(8,0);
+    };
+
     const {createApp} = Vue;
 
     createApp({
@@ -97,9 +132,11 @@
                 streamText: '',
                 message: '',
                 debug: `SysInfo: ${urlChat}`,
+                isLoading: 0,
                 showConfig: 0,
                 showDbSelection: allowDbSelection,
                 showInputBox: allowInputField,
+                inputURL: "",
                 chat: [{"role": "sys", "content": `Welcome![[desc]]`, "tags": []}],
                 collections: ["aa", "bb", "cc"],
                 selectedCollection: "default",
@@ -130,18 +167,16 @@
                         'accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: `{"question": "${this.userInput}", "collection": "${collection}", "temperature": ${this.selectedTemperature}}`
+                    body: `{"question": "${encodeURIComponent(this.userInput)}", "collection": "${collection}", "temperature": ${this.selectedTemperature}}`
                 });
                 // starting streaming
                 this.userInput = "";
                 const reader = response.body.getReader();
                 while (true) {
                     const { done, value } = await reader.read();
-
                     if (done) {
                         break;
                     }
-
                     const chunk = new TextDecoder('utf-8').decode(value);
                     this.streamText += chunk;
                 }
@@ -150,16 +185,58 @@
                 this.chat.push({
                     "role": "sys", 
                     "content": this.streamText.replace("waiting for bot...", ""),
-                    "tags": collection == "default" ? [] : [`source: ${collection}`]
-                    
+                    "tags": this.assignTags(collection)
                 })
                 this.streamText = ""
                 this.scrollToBottom()
             },
 
+            setInputURL() {
+                console.log(this.inputURL);
+                this.selectedCollection = `tmp-${cyrb53(this.inputURL)}`;
+                this.isLoading = 1;
+
+                fetch(urlCreateCollection, {
+                    method: 'POST',
+                    headers: {'accept': 'application/json', 'Content-Type': 'application/json'},
+                    body: `{"source_file": "${this.inputURL}", "collection_name": "${this.selectedCollection}", "is_web_url": 1}`
+                })
+                    .then(response => {
+                            if (response.ok) { return response.json();}
+                            return Promise.reject(response); 
+                        })
+                    .then(data => {
+                        this.isLoading=0;
+                        this.showInputBox=0;
+                        this.chat.push({
+                            "role": "user", 
+                            "content": `Use knowledge from ${this.inputURL}.`,
+                            "tags": this.assignTags(this.selectedCollection)
+                        })
+                    })
+                    .catch(error => { 
+                        this.isLoading=0;
+                        error.json().then((json) => {
+                          this.message = `Creation failed! ${json.detail}`
+                        })
+                    });
+
+                console.log(this.selectedCollection);
+            },
+
+            assignTags(collection) {
+                if (this.inputURL.length) {
+                    return [`source: ${this.inputURL}`, `${this.selectedCollection.replace('tmp-', '')}`]
+                }
+                if (collection == "default") {
+                    return []
+                }
+                return [`source: ${collection}`]
+            },
+
             scrollToBottom() {
                 setTimeout(() => {
-                    document.getElementById("chat-input").scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    document.getElementById("chat-input").scrollIntoView({behavior: 'smooth', block: 'end'});
                 }, 900);
             }
         }

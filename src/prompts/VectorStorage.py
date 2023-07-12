@@ -18,6 +18,7 @@ class VectorStorage:
     class InputSchema(BaseModel):
         source_file: str
         collection_name: str
+        is_web_url: bool = False
 
     class InputDelSchema(BaseModel):
         collection_name: str
@@ -45,6 +46,9 @@ class VectorStorage:
         collection_name is also the folder name
         """
 
+        file_dir = Settings().UPLOAD_PATH
+        if (not is_web_url) and (file_dir not in source_file):
+            source_file = f"{file_dir}/{source_file}"
         source_file_ext = source_file.split(".")[-1].lower()
 
         # from langchain.document_loaders import DataFrameLoader
@@ -55,12 +59,9 @@ class VectorStorage:
 
         elif source_file_ext in ["html", "htm"]:
             # from langchain.document_loaders import UnstructuredHTMLLoader
-            # default require extra package, so parse the kwargs
+            # bs_kwargs={"features": "html.parser"}
             from langchain.document_loaders import BSHTMLLoader
-            loader = BSHTMLLoader(
-                file_path=source_file,
-                bs_kwargs={"features": "html.parser"}
-            )
+            loader = BSHTMLLoader(file_path=source_file),
 
         elif source_file_ext in ["csv"]:
             from langchain.document_loaders import UnstructuredCSVLoader
