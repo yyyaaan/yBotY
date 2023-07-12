@@ -33,24 +33,23 @@
         </div>
     </div>
 
-    <div id="db-selection" class="row valign-wrapper">
+    <div id="llm-config" class="row valign-wrapper">
         <div class="col s6 right-align" @click="showConfig=1-showConfig">
             <p class="mute" style="text-decoration: underline;">
                 <span v-if="showConfig">Close </span>
                 <span v-else>Open LLM Options</span>
-                
             </p>
+        </div>
+        <div v-if="showConfig && showDbSelection" class="col s3 right-align">
+            <label>Vector Database Selection</label>
+            <select class="browser-default" v-model="selectedCollection">
+                <option v-for="c in collections" :value="c">{{c}}</option>
+            </select>
         </div>
         <div v-if="showConfig" class="col s3 right-align">
             <label>LLM Temperature</label>
             <select class="browser-default" v-model="selectedTemperature">
                 <option v-for="t in [0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]">{{t}}</option>
-            </select>
-        </div>
-        <div v-if="showConfig" class="col s3 right-align">
-            <label>Vector Database Selection</label>
-            <select class="browser-default" v-model="selectedCollection">
-                <option v-for="c in collections" :value="c">{{c}}</option>
             </select>
         </div>
     </div>
@@ -70,7 +69,6 @@
                 {{ streamText }}
             </div>
         </div>
-
     </div>
 
     <div id="chat-input" class="row valign-wrapper">
@@ -86,9 +84,10 @@
 
 [% block vuejs %]
 <script>
-    var url_chat = "[[ endpoint ]]";
-    var url_collections = "[[ endpoint2 ]]"
-
+    const urlChat = "[[ endpoint ]]";
+    const urlCollections = "[[ endpoint2 ]]";
+    const allowDbSelection = [% if allow_db_selection %][[ allow_db_selection ]][% else %]0[% endif %];
+    const allowInputField = [% if allow_input_field %][[ allow_input_field ]][% else %]0[% endif %];
     const {createApp} = Vue;
 
     createApp({
@@ -97,8 +96,10 @@
                 userInput: '',
                 streamText: '',
                 message: '',
-                debug: `SysInfo: ${url_chat}`,
+                debug: `SysInfo: ${urlChat}`,
                 showConfig: 0,
+                showDbSelection: allowDbSelection,
+                showInputBox: allowInputField,
                 chat: [{"role": "sys", "content": `Welcome![[desc]]`, "tags": []}],
                 collections: ["aa", "bb", "cc"],
                 selectedCollection: "default",
@@ -107,7 +108,7 @@
         },
 
         created() {
-            fetch(url_collections)
+            fetch(urlCollections)
                 .then(response => response.json())
                 .then(data => this.collections=data)
         },
@@ -123,7 +124,7 @@
                 this.streamText = "waiting for bot...";
 
                 collection = this.selectedCollection;
-                const response = await fetch(url_chat, {
+                const response = await fetch(urlChat, {
                     method: 'POST',
                     headers: {
                         'accept': 'application/json',

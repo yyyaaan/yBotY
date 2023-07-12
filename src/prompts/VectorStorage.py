@@ -27,7 +27,6 @@ class VectorStorage:
 
     @staticmethod
     def delete_filesystem_file(filename):
-        print("entering here!")
         upload_dir = Settings().UPLOAD_PATH
         if upload_dir not in filename:
             filename = f"{upload_dir}/{filename}"

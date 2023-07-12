@@ -149,23 +149,36 @@ def render_chat_page(request: Request, name: str, **kwargs):
 
 @router_me.get("/chat", tags=["Frontend"])
 def page_chat_me(request: Request):
-    desc = """
-    I am a chatbot that can tell about Yan Pan.
-    You may use any preferred language.
-    Please be aware that even though instructed to be precise and fact-based,
-    language model can still provide inaccurate information.
-    """.replace("  ", "")
-    return render_chat_page(
-        request, "chat_about_me_stream",
-        desc=desc, title="About Yan Pan"
-    )
+    meta = {
+        "title": "About Yan Pan",
+        "desc": (
+            "\nI am a chatbot that can tell about Yan Pan."
+            "\nYou may use any preferred language."
+            "\nPlease be aware that even though instructed to be precise and "
+            "fact-based, language model could provide inaccurate information."
+        ),
+    }
+    return render_chat_page(request, "chat_about_me_stream", **meta)
 
 
-@router.get("/chat1", tags=["Frontend"])
-def page_chat_one(request: Request):
+@router.get("/chat-file", tags=["Frontend"])
+def page_chat_file(request: Request):
     meta = {
         "title": "PDF Chat",
-        "desc": "\nI am a chatbot that can answer questions about PDFs."
+        "desc": "\nI am a chatbot that can answer questions about PDFs.",
+        "allow_db_selection": 1
+    }
+    return render_chat_page(request, "chat_offer_stream", **meta)
+
+
+@router.get("/chat-web", tags=["Frontend"])
+def page_chat_web(request: Request):
+    meta = {
+        "title": "Chat with a Webpage",
+        "desc": (
+            "\nI am a chatbot that can answer questions about any webpage."
+            "\nPlease provide the URL of the webpage."
+        ),
     }
     return render_chat_page(request, "chat_offer_stream", **meta)
 
