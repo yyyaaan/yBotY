@@ -5,7 +5,6 @@ from langchain.vectorstores import Chroma
 from os import system
 from pydantic import BaseModel
 
-
 # Loaders are imported only when necessary
 
 from botSettings.settings import Settings
@@ -19,6 +18,7 @@ class VectorStorage:
     class InputSchema(BaseModel):
         source_file: str
         collection_name: str
+        is_web_url: bool = False
 
     class InputDelSchema(BaseModel):
         collection_name: str
@@ -28,7 +28,6 @@ class VectorStorage:
 
     @staticmethod
     def delete_filesystem_file(filename):
-        print("entering here!")
         upload_dir = Settings().UPLOAD_PATH
         if upload_dir not in filename:
             filename = f"{upload_dir}/{filename}"
@@ -38,33 +37,54 @@ class VectorStorage:
     @staticmethod
     def chroma_create_persistent_collection(
         source_file: str,
-        collection_name: str
+        collection_name: str,
+        is_web_url: bool = False
     ) -> None:
         """
         embed a document (html, txt, doc) to vector and save to database
+        when is_web_url is true, shortcut to download and parse file
         collection_name is also the folder name
         """
+
+        file_dir = Settings().UPLOAD_PATH
+        if (not is_web_url) and (file_dir not in source_file):
+            source_file = f"{file_dir}/{source_file}"
         source_file_ext = source_file.split(".")[-1].lower()
 
-        if source_file_ext in ["html", "htm"]:
-            from langchain.document_loaders import UnstructuredHTMLLoader
-            loader = UnstructuredHTMLLoader(source_file)
+        # from langchain.document_loaders import DataFrameLoader
 
-        if source_file_ext in ["doc", "docx"]:
+        if is_web_url:
+            from langchain.document_loaders import WebBaseLoader
+            loader = WebBaseLoader(source_file)
+
+        elif source_file_ext in ["html", "htm"]:
+            # from langchain.document_loaders import UnstructuredHTMLLoader
+            # bs_kwargs={"features": "html.parser"}
+            from langchain.document_loaders import BSHTMLLoader
+            loader = BSHTMLLoader(file_path=source_file),
+
+        elif source_file_ext in ["csv"]:
+            from langchain.document_loaders import UnstructuredCSVLoader
+            loader = UnstructuredCSVLoader(source_file)
+
+        elif source_file_ext in ["doc", "docx"]:
             from langchain.document_loaders import UnstructuredWordDocumentLoader  # noqa
             loader = UnstructuredWordDocumentLoader(source_file)
 
-        if source_file_ext in ["pdf"]:
+        elif source_file_ext in ["pdf"]:
             from langchain.document_loaders import UnstructuredPDFLoader
             loader = UnstructuredPDFLoader(source_file)
 
-        if source_file_ext in ["md"]:
+        elif source_file_ext in ["md"]:
             from langchain.document_loaders import UnstructuredMarkdownLoader  # noqa
             loader = UnstructuredMarkdownLoader(source_file)
 
-        if source_file_ext in ["txt"]:
+        elif source_file_ext in ["txt"]:
             from langchain.document_loaders import TextLoader
             loader = TextLoader(source_file)
+
+        else:
+            raise ValueError("Unsupported file type")
 
         documents = loader.load()
         texts = RecursiveCharacterTextSplitter(

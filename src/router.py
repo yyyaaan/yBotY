@@ -1,11 +1,12 @@
 # Yan Pan, 2023
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from glob import glob
 
 from prompts.CodeAnalyzer import CodeAnalyzer
 from prompts.DocumentQA import DocumentQA
+from prompts.VectorStorage import VectorStorage
 from botSettings.settings import Settings
 
 
@@ -41,15 +42,19 @@ def get_trace_callable(request: Request):
 
 
 # backends
-@router_me.post(
-    "/chat-about-me",
+@router.post(
+    "/chat-document",
     tags=["LLM Structured Answer"],
     response_model=DocumentQA.OutputSchema
 )
-def chat_about_me(
+def chat_document(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
+    """
+    chat with document. default collection for chat-about-me feature.
+    document must be registered to Chroma DB collection. See /list-collections.
+    """
     agent = DocumentQA(
         db_name="about-me" if payload.collection == "default" else payload.collection,  # noqa: E501
         trace_func=get_trace_callable(request)
@@ -68,6 +73,34 @@ def list_chroma_collections(request: Request):
     The return name can be used for documentQA (/chat) parameters.
     """
     return [x.split("/")[-1] for x in glob(f"{Settings().CHROMA_PATH}/*")]
+
+
+@router.post(
+    path="/create-vector-collection",
+    tags=["LLM Structured Answer", "LLM Streaming Response", "LLM Admin"],
+)
+def create_collection_from_file(
+    request: Request,
+    payload: VectorStorage.InputSchema
+):
+    """
+    Create a ChromaDB collection from an uploaded file.\n
+    This actions may take a few minutes to complete; please wait patiently.
+    """
+    try:
+        VectorStorage.chroma_create_persistent_collection(
+            source_file=payload.source_file,
+            collection_name=payload.collection_name,
+            is_web_url=payload.is_web_url,
+        )
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"message": (
+        f"{payload.collection_name} "
+        f"created from {payload.source_file}"
+    )}
 
 
 @router.post(
@@ -116,8 +149,8 @@ def chat_about_me_stream(
     )
 
 
-@router.post("/stream/chat-offer", tags=["LLM Streaming Response"])
-def chat_offer_stream(
+@router.post("/stream/chat-document", tags=["LLM Streaming Response"])
+def chat_document_stream(
     request: Request,
     payload: DocumentQA.InputSchema
 ):
@@ -141,7 +174,6 @@ def render_chat_page(request: Request, name: str, **kwargs):
         context={
             "request": request,
             "endpoint": str(request.url_for(name)),
-            "endpoint2": str(request.url_for("list_chroma_collections")),
             **kwargs
         },
     )
@@ -149,31 +181,45 @@ def render_chat_page(request: Request, name: str, **kwargs):
 
 @router_me.get("/chat", tags=["Frontend"])
 def page_chat_me(request: Request):
-    desc = """
-    I am a chatbot that can tell about Yan Pan.
-    You may use any preferred language.
-    Please be aware that even though instructed to be precise and fact-based,
-    language model can still provide inaccurate information.
-    """.replace("  ", "")
-    return render_chat_page(
-        request, "chat_about_me_stream",
-        desc=desc, title="About Yan Pan"
-    )
-
-
-@router.get("/chat1", tags=["Frontend"])
-def page_chat_one(request: Request):
     meta = {
-        "title": "PDF Chat",
-        "desc": "\nI am a chatbot that can answer questions about PDFs."
+        "title": "About Yan Pan",
+        "desc": (
+            "\nI am a chatbot that can tell about Yan Pan."
+            "\nYou may use any preferred language."
+            "\nPlease be aware that even though instructed to be precise and "
+            "fact-based, language model could provide inaccurate information."
+        ),
     }
-    return render_chat_page(request, "chat_offer_stream", **meta)
+    return render_chat_page(request, "chat_about_me_stream", **meta)
+
+
+@router.get("/chat-file", tags=["Frontend"])
+def page_chat_file(request: Request):
+    meta = {
+        "title": "Chat with a File",
+        "desc": "\nI am a chatbot that can answer questions about commonly used files.",  # noqa: E501
+        "allow_db_selection": 1
+    }
+    return render_chat_page(request, "chat_document_stream", **meta)
+
+
+@router.get("/chat-web", tags=["Frontend"])
+def page_chat_web(request: Request):
+    meta = {
+        "title": "Chat with a Webpage",
+        "desc": (
+            "\nI am a chatbot that can answer questions about any webpage."
+            "\nPlease provide the URL of the webpage."
+        ),
+        "allow_input_field": 1
+    }
+    return render_chat_page(request, "chat_document_stream", **meta)
 
 
 @router.get("/code", tags=["Frontend"])
 def page_code_analysis(request: Request):
     meta = {
-        "title": "Code Analysis",
+        "title": "Code Analysis Bot",
         "desc": "I am a chatbot that can answer questions about code."
     }
     return render_chat_page(request, "analyze_code_stream", **meta)

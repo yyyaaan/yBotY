@@ -129,14 +129,22 @@
                         headers: {'accept': 'application/json', 'Content-Type': 'application/json'},
                         body: `{"source_file": "${f}", "collection_name": "${name}"}`
                 })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (response.ok) { return response.json();}
+                        return Promise.reject(response); 
+                    })
                     .then(data => {
                         this.message = data.message;
                         this.listFiles();
                         this.listCollections();
                         this.isLoading=0;
                     })
-                    .catch(error => this.message = error);
+                    .catch(error => { 
+                        this.isLoading=0;
+                        error.json().then((json) => {
+                          this.message = `Creation failed! ${json.detail}`
+                        })
+                    });
             },
 
             listFiles() {

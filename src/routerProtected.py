@@ -37,34 +37,10 @@ async def upload_file(
         with open(destination, "wb") as f:
             f.write(contents)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"filename": destination}
-
-
-@router_admin_only.post("/create-vector-collection")
-def create_collection_from_file(
-    request: Request,
-    payload: VectorStorage.InputSchema
-):
-    """
-    Create a ChromaDB collection from an uploaded file.\n
-    This actions may take a few minutes to complete; please wait patiently.
-    """
-    if file_dir not in payload.source_file:
-        payload.source_file = f"{file_dir}/{payload.source_file}"
-    try:
-        VectorStorage.chroma_create_persistent_collection(
-            source_file=payload.source_file,
-            collection_name=payload.collection_name,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return {"message": (
-        f"{payload.collection_name} "
-        f"created from {payload.source_file}"
-    )}
 
 
 @router_admin_only.post("/delete-vector-collection")
@@ -78,6 +54,7 @@ def delete_collection(
             collection_name=payload.collection_name
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"{payload.collection_name} deleted"}
 
@@ -93,5 +70,6 @@ def delete_file(
             filename=payload.filename
         )
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"{payload.filename} deleted"}
