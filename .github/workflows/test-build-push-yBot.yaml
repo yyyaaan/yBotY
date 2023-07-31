@@ -20,14 +20,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Python 3.10 is required
+    - name: Latest Python 3.11
       uses: actions/setup-python@v3
       with:
-        python-version: "3.10"
+        python-version: "3.11"
     
     - name: Install minimized dependencies
       run: |
-        pip install flake8 fastapi pytest jinja2 openai langchain httpx python-multipart
+        pip install flake8 fastapi pytest jinja2 openai langchain httpx python-multipart pysqlite3
     
     - name: Lint
       run: |
