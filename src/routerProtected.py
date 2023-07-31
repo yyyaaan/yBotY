@@ -73,3 +73,21 @@ def delete_file(
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
     return {"message": f"{payload.filename} deleted"}
+
+
+@router_admin_only.get("/log")
+def get_log(request: Request, filename=""):
+    available_logs = listdir("/mnt/shared/log")
+
+    if filename is not None and len(filename):
+        selected_log = filename
+    else:
+        selected_log = sorted(available_logs)[-1]
+
+    with open(f"/mnt/shared/log/{selected_log}", "r") as f:
+        log_content = f.read().split("\n")
+
+    return {
+        "log": [f">>> {selected_log} <<<"] + log_content,
+        "available": available_logs
+    }
