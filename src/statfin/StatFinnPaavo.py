@@ -1,10 +1,7 @@
-# %%
+import pandas as pd
 from requests import get, post
-from io import StringIO
-from pandas import read_csv
 
 
-# %%
 class StatFinPaavo:
     """
     Tools to load Paavo data to pandas data frame
@@ -29,7 +26,7 @@ class StatFinPaavo:
     def get_data(
             self,
             tiedot: list = ["tr_mtu"],
-            vuosi: list = ["2021"],
+            vuosi: list = ["2021", "2020"],
             exclude_kokomaa: bool = True
     ):
         """
@@ -55,13 +52,12 @@ class StatFinPaavo:
                     "filter": "item",
                     "values": tiedot
                 }
-
             },
             {
                 "code": "Vuosi",
                 "selection": {
                     "filter": "item",
-                    "values": ["2021"]
+                    "values": vuosi
                 }
             },
         ]
@@ -70,11 +66,17 @@ class StatFinPaavo:
             url=self.base_url + self.data_id,
             json={
                 "query": query,
-                "response": {"format": "csv"},
+                "response": {"format": "json"},
             }
         )
         self.__handle_error(response)
-        return read_csv(StringIO(response.text))
+        return pd.DataFrame(
+            data=[
+                [*x.get('key', []), *x.get('values', [])]
+                for x in response.json()["data"]
+            ],
+            columns=[x["code"] for x in response.json()["columns"]],
+        )
 
     def show_fields(self, simplify=True) -> list:
         """
@@ -101,3 +103,7 @@ class StatFinPaavo:
     def __handle_error(self, res):
         if res.status_code > 299:
             raise Exception("Error reading API", res.reason)
+
+# df = StatFinPaavo().get_data()
+# df = df.astype({"Postinumeroalue": "int", "Vuosi": "int"})
+# df["tr_mtu"] = pd.to_numeric(df['tr_mtu'], errors='coerce')
