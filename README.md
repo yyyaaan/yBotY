@@ -1,6 +1,6 @@
 # yBotY
 
-### [Live Demo (API docs)](https://v2.yan.fi/app/docs) 
+### [Live Demo (API docs)](https://v2.yan.fi/docs) 
 
 [![yBotY-app](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml/badge.svg)](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml) 
 

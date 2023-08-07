@@ -2,6 +2,7 @@
 *.env
 tmp*
 tmp/*
+*.kml
 
 # Local .terraform directories
 **/.terraform/*
