@@ -258,7 +258,7 @@ class StatFinPaavo:
 
 
 # %%
-stat_service = StatFinPaavo()
-df = stat_service.get_data()
-df["median_income"] = pd.to_numeric(df['tr_mtu'], errors='coerce')
-stat_service.plot_on_map(df, data_column="median_income")
+# stat_service = StatFinPaavo()
+# df = stat_service.get_data()
+# df["median_income"] = pd.to_numeric(df['tr_mtu'], errors='coerce')
+# stat_service.plot_on_map(df, data_column="median_income")
