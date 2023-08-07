@@ -1,15 +1,10 @@
 
-# %% 
-import folium
 import pandas as pd
-import plotly.express as px
 import xml.etree.ElementTree as ET
-
-from folium.features import GeoJsonTooltip
 from os.path import exists
 from requests import get, post
+# plotly, folium imported on call
 
-# %%
 class StatFinPaavo:
     """
     Tools to load Paavo data to pandas data frame
@@ -138,9 +133,11 @@ class StatFinPaavo:
         if self.geojson is None:
             self.__process_geojson()
 
-        m = folium.Map(location=[65, 25], zoom_start=5)
+        from folium import Choropleth, GeoJsonTooltip, LayerControl, Map
 
-        cp = folium.Choropleth(
+        m = Map(location=[65, 25], zoom_start=5)
+
+        cp = Choropleth(
             geo_data=self.geojson,
             name="choropleth",
             data=df,
@@ -158,8 +155,8 @@ class StatFinPaavo:
         for one in cp.geojson.data['features']:
             one['properties'][data_column] = df_indexed.loc[one['id'], data_column]  # noqa: E501
 
-        folium.GeoJsonTooltip(['posti_alue', 'nimi', data_column]).add_to(cp.geojson)  # noqa: E501
-        folium.LayerControl().add_to(m)
+        GeoJsonTooltip(['posti_alue', 'nimi', data_column]).add_to(cp.geojson)  # noqa: E501
+        LayerControl().add_to(m)
 
         if save_to_filename is not None and len(save_to_filename):
             m.save(save_to_filename)
@@ -175,7 +172,9 @@ class StatFinPaavo:
         if self.geojson is None:
             self.__process_geojson()
 
-        fig = px.choropleth(
+        from plotly.express import choropleth
+
+        fig = choropleth(
             data_frame=df,
             geojson=self.geojson,
             color=data_column,
