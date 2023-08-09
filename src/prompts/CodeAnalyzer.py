@@ -73,10 +73,7 @@ class CodeAnalyzer(BaseOpenAI):
             self.llm.agenerate([messages])
         )
 
-        from asyncio import sleep
         async for token in self.async_callback.aiter():
-            print("** OpenAI token generated")
-            sleep(0.5)
             yield token
 
         await task
