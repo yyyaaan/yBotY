@@ -61,6 +61,7 @@ class DocumentQA(BaseOpenAI):
             self.qa.arun(question)
         )
         async for token in self.async_callback.aiter():
+            print("** OpenAI token generated")
             yield token
 
         await task
