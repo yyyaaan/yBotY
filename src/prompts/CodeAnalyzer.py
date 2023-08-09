@@ -16,12 +16,12 @@ class CodeAnalyzer(BaseOpenAI):
         code: str
 
     class OutputSchema(BaseModel):
-        language: Optional[str]
-        description: Optional[str]
-        review: Optional[str]
-        security: Optional[str]
-        exception: Optional[dict]
-        metrics: Optional[dict]
+        language: Optional[str] = ""
+        description: Optional[str] = ""
+        review: Optional[str] = ""
+        security: Optional[str] = ""
+        exception: Optional[dict] = {}
+        metrics: Optional[dict] = {}
 
     def __init__(self, **kwargs):
 

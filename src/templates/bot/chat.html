@@ -129,7 +129,7 @@
         data() {
             return {
                 userInput: '',
-                streamText: '',
+                streamTextArray: [],
                 message: '',
                 debug: `SysInfo: ${urlChat}`,
                 isLoading: 0,
@@ -142,6 +142,24 @@
                 selectedCollection: "default",
                 selectedTemperature: 0.1
             }
+        },
+
+        computed: {
+            streamText() {
+                if (this.streamTextArray[this.streamTextArray.length - 1] === 'EOF-END-STREAMING'){
+                    return '';
+                } 
+                return this.streamTextArray.join('');
+            }
+        },
+
+        watch: {
+            streamTextArray: {
+                handler(newVal) {
+                    console.log('Watching streamTextArray');
+                },
+                immediate: true,
+            },
         },
 
         created() {
@@ -158,7 +176,7 @@
                     return;
                 }
                 this.chat.push({"role": "user", "content": this.userInput});
-                this.streamText = "waiting for bot...";
+                this.streamTextArray.push("waiting for bot...");
 
                 collection = this.selectedCollection;
                 const response = await fetch(urlChat, {
@@ -172,13 +190,16 @@
                 // starting streaming
                 this.userInput = "";
                 const reader = response.body.getReader();
+                console.log('Streaming Reader object:', reader);
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) {
                         break;
+                        this.streamTextArray.push('EOF-END-STREAMING')
                     }
                     const chunk = new TextDecoder('utf-8').decode(value);
-                    this.streamText += chunk;
+                    console.log('Streaming chunk processed')
+                    this.streamTextArray.push(chunk);
                 }
 
                 // finish
@@ -187,7 +208,7 @@
                     "content": this.streamText.replace("waiting for bot...", ""),
                     "tags": this.assignTags(collection)
                 })
-                this.streamText = ""
+                this.streamTextArray = []
                 this.scrollToBottom()
             },
 
