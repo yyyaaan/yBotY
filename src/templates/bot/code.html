@@ -121,7 +121,9 @@
                     method: 'POST',
                     headers: {
                         'accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Connection': 'keep-alive'
                     },
                     body: `{"code": "${encodeURIComponent(this.userInput)}"}`
                 });

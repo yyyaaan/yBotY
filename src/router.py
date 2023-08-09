@@ -128,6 +128,7 @@ def analyze_code_stream(
     return StreamingResponse(
         agent.analyze_stream(payload.code),
         media_type="text/event-stream",
+        headers={'Connection': 'keep-alive', 'Cache-Control': 'no-cache'}
     )
 
 
@@ -146,6 +147,7 @@ def chat_about_me_stream(
     return StreamingResponse(
         agent.ask_stream(payload.question),
         media_type="text/event-stream",
+        headers={'Connection': 'keep-alive', 'Cache-Control': 'no-cache'}
     )
 
 
@@ -163,6 +165,7 @@ def chat_document_stream(
     return StreamingResponse(
         agent.ask_stream(payload.question),
         media_type="text/event-stream",
+        headers={'Connection': 'keep-alive', 'Cache-Control': 'no-cache'}
     )
 
 
