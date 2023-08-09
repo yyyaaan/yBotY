@@ -60,8 +60,11 @@ class DocumentQA(BaseOpenAI):
         task = self.create_asyncio_wrapped_task(
             self.qa.arun(question)
         )
+
+        from asyncio import sleep
         async for token in self.async_callback.aiter():
             print("** OpenAI token generated")
+            sleep(0.5)
             yield token
 
         await task
