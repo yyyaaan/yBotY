@@ -1,10 +1,13 @@
 
+# %%
 import pandas as pd
 import xml.etree.ElementTree as ET
 from os.path import exists
 from requests import get, post
 # plotly, folium imported on call
 
+
+# %%
 class StatFinPaavo:
     """
     Tools to load Paavo data to pandas data frame
@@ -25,13 +28,13 @@ class StatFinPaavo:
         "Postinumeroalueittainen_avoin_tieto/uusin/"
     )
     stat_geo_url = (
-        "http://geo.stat.fi/geoserver/postialue/"
-        "ows?service=WFS&version=1.0.0&request=GetFeature&typeName=postialue%3Apno_2023"
-        "&maxFeatures=5000&outputFormat=application%2Fvnd.google-earth.kml%2Bxml"
+        "http://geo.stat.fi/geoserver/postialue/ows"
+        "?service=WFS&version=1.0.0&request=GetFeature"
+        "&typeName=postialue%3Apno_2023&maxFeatures=5000"
+        "&outputFormat=application%2Fvnd.google-earth.kml%2Bxml"
     )
     geojson = None
     data_id = "paavo_pxt_12f7.px"
-
 
     def get_data(
             self,
@@ -116,7 +119,7 @@ class StatFinPaavo:
     def __handle_error(self, res):
         if res.status_code > 299:
             raise Exception("Error reading API", res.reason)
-        
+
     def plot_on_map(
         self,
         df: pd.DataFrame,
@@ -130,15 +133,15 @@ class StatFinPaavo:
         pno_column: specify the column name that contains the post number
         save_to_filename: if not empty, save the map to output file
         """
-        if self.geojson is None:
-            self.__process_geojson()
+
+        geojson = self.minimize_geojson(df[pno_column])
 
         from folium import Choropleth, GeoJsonTooltip, LayerControl, Map
 
         m = Map(location=[65, 25], zoom_start=5)
 
         cp = Choropleth(
-            geo_data=self.geojson,
+            geo_data=geojson,
             name="choropleth",
             data=df,
             columns=[pno_column, data_column],
@@ -153,7 +156,10 @@ class StatFinPaavo:
 
         df_indexed = df.set_index(pno_column)
         for one in cp.geojson.data['features']:
-            one['properties'][data_column] = df_indexed.loc[one['id'], data_column]  # noqa: E501
+            try:
+                one['properties'][data_column] = df_indexed.loc[one['id'], data_column]  # noqa: E501
+            except Exception:
+                pass
 
         GeoJsonTooltip(['posti_alue', 'nimi', data_column]).add_to(cp.geojson)  # noqa: E501
         LayerControl().add_to(m)
@@ -168,15 +174,14 @@ class StatFinPaavo:
         data_column: str,
         pno_column: str = "Postinumeroalue",
     ):
-        """plotly has known issue coloring the rest of the world occasionally"""
-        if self.geojson is None:
-            self.__process_geojson()
+        """plotly has known issue coloring the inverse occasionally"""
+        geojson = self.minimize_geojson(df[pno_column])
 
         from plotly.express import choropleth
 
         fig = choropleth(
             data_frame=df,
-            geojson=self.geojson,
+            geojson=geojson,
             color=data_column,
             locations=pno_column,
             featureidkey="id",
@@ -185,6 +190,20 @@ class StatFinPaavo:
         fig.update_geos(fitbounds="locations", visible=False)
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
         return fig
+
+    def minimize_geojson(self, posti_alue):
+        if self.geojson is None:
+            self.__process_geojson()
+        
+        geojson_small = {
+            k: v for k, v in self.geojson.items()
+            if k != "features"
+        }
+        geojson_small["features"] = [
+            one for one in self.geojson["features"]
+            if one["id"] in list(posti_alue)
+        ]
+        return geojson_small
 
     def __process_geojson(self):
         """dependency for geo plot. will be called automatically"""
@@ -202,7 +221,7 @@ class StatFinPaavo:
         root = ET.fromstring(kml)
         geojson = {"type": "FeatureCollection", "features": []}
 
-        for placemark in root.findall('.//{http://www.opengis.net/kml/2.2}Placemark'):
+        for placemark in root.findall('.//{http://www.opengis.net/kml/2.2}Placemark'):  # noqa: E501
 
             metadata = {
                 x.attrib["name"]: x.text 
@@ -231,24 +250,24 @@ class StatFinPaavo:
                     for c in coordinates.text.strip().split(" ")
                 ]
 
-            geometry = placemark.find("{http://www.opengis.net/kml/2.2}MultiGeometry")
+            geometry = placemark.find("{http://www.opengis.net/kml/2.2}MultiGeometry")  # noqa: E501
             if geometry is not None:
                 # multipolygon
                 feature["geometry"]["type"] = "MultiPolygon"
                 feature["geometry"]["coordinates"] = [
                     [process_one_polygon(g)]
-                    for g in geometry.findall("{http://www.opengis.net/kml/2.2}Polygon")
+                    for g in geometry.findall("{http://www.opengis.net/kml/2.2}Polygon")  # noqa: E501
                 ]
 
             else:
                 # polygon
-                geometry = placemark.find("{http://www.opengis.net/kml/2.2}Polygon")
+                geometry = placemark.find("{http://www.opengis.net/kml/2.2}Polygon")  # noqa: E501
                 if geometry is None:
-                    print(feature["properties"]["posti_alue"], "processing failed")
+                    print(feature["properties"]["posti_alue"], "processing failed")  # noqa: E501
                     continue
 
                 feature["geometry"]["type"] = "Polygon"
-                feature["geometry"]["coordinates"] = [process_one_polygon(geometry)]
+                feature["geometry"]["coordinates"] = [process_one_polygon(geometry)]  # noqa: E501
 
             geojson["features"].append(feature)
 
@@ -261,3 +280,4 @@ class StatFinPaavo:
 # df = stat_service.get_data()
 # df["median_income"] = pd.to_numeric(df['tr_mtu'], errors='coerce')
 # stat_service.plot_on_map(df, data_column="median_income")
+# output size can be limited by reduce the postal numbers in df
