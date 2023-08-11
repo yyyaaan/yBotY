@@ -57,6 +57,7 @@ def chat_document(
     """
     agent = DocumentQA(
         db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
+        model_name=payload.model,
         trace_func=get_trace_callable(request)
     )
     return agent.ask(payload.question)
@@ -112,8 +113,9 @@ def analyze_code(
     request: Request,
     payload: CodeAnalyzer.InputSchema
 ):
-    request.app.objs.get("CodeAnalyzer", CodeAnalyzer())
-    return CodeAnalyzer().analyze(payload.code)
+    return CodeAnalyzer(
+        trace_func=get_trace_callable(request)
+    ).analyze(payload.code)
 
 
 @router.post("/stream/code", tags=["LLM Streaming Response"])
@@ -141,6 +143,7 @@ def chat_about_me_stream(
     agent = DocumentQA(
         db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
         temperature=payload.temperature,
+        model_name=payload.model,
         streaming=True,
         trace_func=get_trace_callable(request)
     )
@@ -159,6 +162,7 @@ def chat_document_stream(
     agent = DocumentQA(
         db_name="kastelli" if payload.collection == "default" else payload.collection,  # noqa: E501
         temperature=payload.temperature,
+        model_name=payload.model,
         streaming=True,
         trace_func=get_trace_callable(request)
     )

@@ -62,6 +62,7 @@ class BaseOpenAI:
         try:
             usage = {
                 "cls": self.__class__.__name__,
+                "model_name": self.llm.model_name,
                 "streaming": self.llm.streaming,
                 "total_tokens": self.openai_callback.total_tokens,
                 "prompt_tokens": self.openai_callback.prompt_tokens,

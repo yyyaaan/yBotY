@@ -194,7 +194,7 @@ class StatFinPaavo:
     def minimize_geojson(self, posti_alue):
         if self.geojson is None:
             self.__process_geojson()
-        
+
         geojson_small = {
             k: v for k, v in self.geojson.items()
             if k != "features"
@@ -224,7 +224,7 @@ class StatFinPaavo:
         for placemark in root.findall('.//{http://www.opengis.net/kml/2.2}Placemark'):  # noqa: E501
 
             metadata = {
-                x.attrib["name"]: x.text 
+                x.attrib["name"]: x.text
                 for x in placemark.findall((
                     "{http://www.opengis.net/kml/2.2}ExtendedData/"
                     "{http://www.opengis.net/kml/2.2}SchemaData/"

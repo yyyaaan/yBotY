@@ -20,6 +20,7 @@ class DocumentQA(BaseOpenAI):
         question: str
         collection: str = "default"
         temperature: float = 0.1
+        model: str = "gpt-3.5-turbo"
 
     class OutputSchema(BaseModel):
         response: str
@@ -42,6 +43,7 @@ class DocumentQA(BaseOpenAI):
             llm=self.llm,
             chain_type=chain_type,
             retriever=db.as_retriever(),
+            callbacks=[self.openai_callback],
         )
 
         return None

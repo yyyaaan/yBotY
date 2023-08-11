@@ -187,7 +187,7 @@
                         'Cache-Control': 'no-cache',
                         'Connection': 'keep-alive'
                     },
-                    body: `{"question": "${encodeURIComponent(this.userInput)}", "collection": "${collection}", "temperature": ${this.selectedTemperature}}`
+                    body: `{"question": "${encodeURIComponent(this.userInput)}", "collection": "${collection}", "temperature": ${this.selectedTemperature}, "model": "gpt-3.5-turbo"}`
                 });
                 // starting streaming
                 this.userInput = "";
