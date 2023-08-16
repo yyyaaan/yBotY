@@ -4,19 +4,19 @@ from os import listdir
 
 from botSettings.settings import Settings
 from prompts.VectorStorage import VectorStorage
-from router import templates
 
 router_admin_only = APIRouter()
 file_dir = Settings().UPLOAD_PATH
 
 
-@router_admin_only.get("/admin")
+@router_admin_only.get("/admin", summary="Check admin privileges")
 def admin_panel(request: Request):
-    """Admin panel"""
-    return templates.TemplateResponse(
-        name="bot/admin.html",
-        context={"request": request}
-    )
+    """only for checking admin privileges"""
+    return {"admin": "yes"}
+    # return templates.TemplateResponse(
+    #     name="bot/admin.html",
+    #     context={"request": request}
+    # )
 
 
 @router_admin_only.get("/list-uploaded-files", response_model=list[str])

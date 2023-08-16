@@ -23,7 +23,8 @@ templates = Jinja2Templates(
 
 # using two routers for possible fine-tuned auth level
 router = APIRouter()
-router_me = APIRouter()
+router_open = APIRouter()
+router_frontend = APIRouter()
 
 
 def get_trace_callable(request: Request):
@@ -65,7 +66,8 @@ def chat_document(
 
 @router.get(
     path="/list-collections",
-    tags=["LLM Structured Answer", "LLM Streaming Response", "LLM Admin"],
+    summary="[non-admin ok] List Chroma DB collections",
+    tags=["LLM Admin"],
     response_model=list[str]
 )
 def list_chroma_collections(request: Request):
@@ -78,7 +80,8 @@ def list_chroma_collections(request: Request):
 
 @router.post(
     path="/create-vector-collection",
-    tags=["LLM Structured Answer", "LLM Streaming Response", "LLM Admin"],
+    summary="[non-admin ok] Create new vector collection",
+    tags=["LLM Admin"],
 )
 def create_collection_from_file(
     request: Request,
@@ -114,6 +117,8 @@ def analyze_code(
     payload: CodeAnalyzer.InputSchema
 ):
     return CodeAnalyzer(
+        temperature=payload.temperature,
+        model_name=payload.model,
         trace_func=get_trace_callable(request)
     ).analyze(payload.code)
 
@@ -125,6 +130,8 @@ def analyze_code_stream(
 ):
     agent = CodeAnalyzer(
         streaming=True,
+        temperature=payload.temperature,
+        model_name=payload.model,
         trace_func=get_trace_callable(request)
     )
     return StreamingResponse(
@@ -134,7 +141,7 @@ def analyze_code_stream(
     )
 
 
-@router_me.post("/stream/chat-about-me", tags=["LLM Streaming Response"])
+@router_open.post("/stream/chat-about-me", tags=["LLM Streaming Response"])
 def chat_about_me_stream(
     request: Request,
     payload: DocumentQA.InputSchema
@@ -173,7 +180,7 @@ def chat_document_stream(
     )
 
 
-# minimal frontend
+# minimal frontend, not used in production
 
 def render_chat_page(request: Request, name: str, **kwargs):
     return templates.TemplateResponse(
@@ -186,7 +193,7 @@ def render_chat_page(request: Request, name: str, **kwargs):
     )
 
 
-@router_me.get("/chat", tags=["Frontend"])
+@router_frontend.get("/chat", tags=["Frontend"])
 def page_chat_me(request: Request):
     meta = {
         "title": "About Yan Pan",
@@ -200,7 +207,7 @@ def page_chat_me(request: Request):
     return render_chat_page(request, "chat_about_me_stream", **meta)
 
 
-@router.get("/chat-file", tags=["Frontend"])
+@router_frontend.get("/chat-file", tags=["Frontend"])
 def page_chat_file(request: Request):
     meta = {
         "title": "Chat with a File",
@@ -210,7 +217,7 @@ def page_chat_file(request: Request):
     return render_chat_page(request, "chat_document_stream", **meta)
 
 
-@router.get("/chat-web", tags=["Frontend"])
+@router_frontend.get("/chat-web", tags=["Frontend"])
 def page_chat_web(request: Request):
     meta = {
         "title": "Chat with a Webpage",
@@ -223,7 +230,7 @@ def page_chat_web(request: Request):
     return render_chat_page(request, "chat_document_stream", **meta)
 
 
-@router.get("/code", tags=["Frontend"])
+@router_frontend.get("/code", tags=["Frontend"])
 def page_code_analysis(request: Request):
     meta = {
         "title": "Code Analysis Bot",
