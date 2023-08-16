@@ -31,7 +31,8 @@ class CodeAnalyzer(BaseOpenAI):
 
         self.template = ChatPromptTemplate.from_template("""
             Please determine the language of the code delimited \
-            by triple backticks. Also, prepare a brief summary, \
+            by triple backticks and uri-encoded \
+            Also, prepare a brief summary, \
             review possible improvements and scan for security risks \
             using provided format after the code.
             Code ```{code}``` \
