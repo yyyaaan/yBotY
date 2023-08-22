@@ -90,7 +90,7 @@ def get_log(request: Request, filename=""):
     else:
         selected_log = sorted(available_logs)[-1]
 
-    with open(f"/mnt/shared/log/{selected_log}", "r") as f:
+    with open(f"/mnt/shared/fluentd/{selected_log}", "r") as f:
         log_content = f.read().split("\n")
 
     return {
