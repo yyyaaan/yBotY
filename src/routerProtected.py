@@ -77,7 +77,13 @@ def delete_file(
 
 @router_admin_only.get("/log")
 def get_log(request: Request, filename=""):
-    available_logs = listdir("/mnt/shared/log")
+    """
+    Archived logs (not available for today's log)
+    """
+    available_logs = [
+        x for x in listdir("/mnt/shared/fluentd")
+        if x.endswith(".log")
+    ]
 
     if filename is not None and len(filename):
         selected_log = filename
