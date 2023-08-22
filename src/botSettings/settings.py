@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     AZ_OPENAI_DEPLOYMENT: str = "gpt4"
     CHROMA_PATH: str = "/mnt/shared/chroma/"
     UPLOAD_PATH: str = "/mnt/shared/upload/"
+    ELASTICSEARCH_URL: str = "http://elasticsearch:9200"
 
     class Config:
         env_prefix = "BOT_"

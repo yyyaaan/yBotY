@@ -1,12 +1,13 @@
 # Yan Pan, 2023
+from glob import glob
+from httpx import AsyncClient
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import Chroma, ElasticsearchStore
 from os import system
 from pydantic import BaseModel
 
 # Loaders are imported only when necessary
-
 from botSettings.settings import Settings
 
 
@@ -19,6 +20,7 @@ class VectorStorage:
         source_file: str
         collection_name: str
         is_web_url: bool = False
+        database: str = "elasticsearch"
 
     class InputDelSchema(BaseModel):
         collection_name: str
@@ -35,17 +37,26 @@ class VectorStorage:
         return None
 
     @staticmethod
-    def chroma_create_persistent_collection(
-        source_file: str,
-        collection_name: str,
-        is_web_url: bool = False
-    ) -> None:
-        """
-        embed a document (html, txt, doc) to vector and save to database
-        when is_web_url is true, shortcut to download and parse file
-        collection_name is also the folder name
-        """
+    async def list_vector_db_set():
+        try:
+            async with AsyncClient() as client:
+                res = await client.get(url=f"{Settings().ELASTICSEARCH_URL}/_aliases")  # noqa: E501
+            if res.status_code > 299:
+                raise Exception(f"Elastic Search not available {res.text}")
+            indices = [k for k, _ in res.json().items() if not k.startswith(".")]
+        except Exception as e:
+            raise Exception(f"Elastic Search not available {e}")
+        return {
+            "chroma": [x.split("/")[-1] for x in glob(f"{Settings().CHROMA_PATH}/*")],  # noqa: E501
+            "elasticsearch": indices,
+        }
 
+    @staticmethod
+    def prepare_documents(
+        source_file: str,
+        is_web_url: bool = False
+    ):
+        """used by chroma/elasticsearch_create_..."""
         file_dir = Settings().UPLOAD_PATH
         if (not is_web_url) and (file_dir not in source_file):
             source_file = f"{file_dir}/{source_file}"
@@ -92,9 +103,22 @@ class VectorStorage:
             chunk_overlap=100,
         ).split_documents(documents)
 
+        return texts
+
+    @staticmethod
+    def chroma_create_persistent_collection(
+        source_file: str,
+        collection_name: str,
+        is_web_url: bool = False
+    ) -> None:
+        """
+        embed a document (html, txt, doc) to vector and save to database
+        when is_web_url is true, shortcut to download and parse file
+        collection_name is also the folder name
+        """
         settings = Settings()
         vector_db = Chroma.from_documents(
-            documents=texts,
+            documents=VectorStorage.prepare_documents(source_file, is_web_url),
             embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY),
             persist_directory=f"{settings.CHROMA_PATH}/{collection_name}",
         )
@@ -122,3 +146,19 @@ class VectorStorage:
             vector_db.delete_collection()
 
         system(f"rm -rf {collection_dir}")
+
+    @staticmethod
+    def elasticsearch_create_persistent_index(
+        source_file: str,
+        collection_name: str,
+        is_web_url: bool = False
+    ):
+        settings = Settings()
+        es = ElasticsearchStore.from_documents(
+            documents=VectorStorage.prepare_documents(source_file, is_web_url),
+            index_name=collection_name,
+            embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY),
+            es_url=settings.ELASTICSEARCH_URL,
+        )
+        es.client.indices.refresh(index=collection_name)
+        return None

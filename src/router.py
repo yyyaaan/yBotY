@@ -2,12 +2,10 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
-from glob import glob
 
 from prompts.CodeAnalyzer import CodeAnalyzer
 from prompts.DocumentQA import DocumentQA
 from prompts.VectorStorage import VectorStorage
-from botSettings.settings import Settings
 
 
 templates = Jinja2Templates(
@@ -68,14 +66,14 @@ def chat_document(
     path="/list-collections",
     summary="[non-admin ok] List Chroma DB collections",
     tags=["LLM Admin"],
-    response_model=list[str]
+    response_model=dict
 )
-def list_chroma_collections(request: Request):
+async def list_vector_db_collections(request: Request):
     """
     List available collection names in the Chroma DB\n
     The return name can be used for documentQA (/chat) parameters.
     """
-    return [x.split("/")[-1] for x in glob(f"{Settings().CHROMA_PATH}/*")]
+    return await VectorStorage.list_vector_db_set()
 
 
 @router.post(
@@ -91,8 +89,13 @@ def create_collection_from_file(
     Create a ChromaDB collection from an uploaded file.\n
     This actions may take a few minutes to complete; please wait patiently.
     """
+    create_func = VectorStorage.chroma_create_persistent_collection
+    if payload.database.lower() == "elasticsearch":
+        create_func = VectorStorage.elasticsearch_create_persistent_index
+        
     try:
-        VectorStorage.chroma_create_persistent_collection(
+        # VectorStorage.chroma_create_persistent_collection(
+        create_func(
             source_file=payload.source_file,
             collection_name=payload.collection_name,
             is_web_url=payload.is_web_url,
