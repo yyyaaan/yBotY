@@ -1,5 +1,8 @@
-# YYYan
-from pydantic import BaseSettings
+# YYYan, adjusted for pydantic settings
+try:
+    from pydantic_settings import BaseSettings
+except:  # noqa: E722
+    from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
