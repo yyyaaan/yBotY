@@ -25,6 +25,23 @@ async def list_uploaded_files(request: Request):
     return [f for f in listdir(file_dir)]
 
 
+@router_admin_only.post("/create-vector-codebase")
+async def create_codebase_vector_db(
+    request: Request,
+    payload: VectorStorage.InputSchema
+):
+    """
+    collection name will be prefixed with codebase- for frontend use
+    Chroma is preferred over elasticsearch for code understanding
+    source_file will be ignored.
+    """
+    docs = VectorStorage.create_codebase_db(
+        name=f"codebase-{payload.collection_name}",
+        database=payload.database,
+    )
+    return {"loaded": docs}
+
+
 @router_admin_only.post("/upload")
 async def upload_file(
     request: Request,
