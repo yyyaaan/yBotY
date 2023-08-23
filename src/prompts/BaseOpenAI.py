@@ -25,6 +25,7 @@ class BaseOpenAI:
         settings = Settings()
         self.openai_callback = OpenAICallbackHandler()
         self.trace = trace_func  # callable
+        self.database = "unspecified"
 
         if streaming:
             self.async_callback = AsyncIteratorCallbackHandler()
@@ -62,6 +63,7 @@ class BaseOpenAI:
         try:
             usage = {
                 "cls": self.__class__.__name__,
+                "database": self.database,
                 "model_name": self.llm.model_name,
                 "streaming": self.llm.streaming,
                 "total_tokens": self.openai_callback.total_tokens,
