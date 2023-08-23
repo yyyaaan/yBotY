@@ -43,7 +43,10 @@ class VectorStorage:
                 res = await client.get(url=f"{Settings().ELASTICSEARCH_URL}/_aliases")  # noqa: E501
             if res.status_code > 299:
                 raise Exception(f"Elastic Search not available {res.text}")
-            indices = [k for k, _ in res.json().items() if not k.startswith(".")]
+            indices = [
+                k for k, _ in res.json().items() 
+                if (not k.startswith(".")) and ("fluentd" not in k)
+            ]
         except Exception as e:
             raise Exception(f"Elastic Search not available {e}")
         return {

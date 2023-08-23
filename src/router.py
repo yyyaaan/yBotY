@@ -56,6 +56,7 @@ def chat_document(
     """
     agent = DocumentQA(
         db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_type=payload.database,
         model_name=payload.model,
         trace_func=get_trace_callable(request)
     )
@@ -152,6 +153,7 @@ def chat_about_me_stream(
 
     agent = DocumentQA(
         db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_type=payload.database,
         temperature=payload.temperature,
         model_name=payload.model,
         streaming=True,
@@ -170,7 +172,8 @@ def chat_document_stream(
     payload: DocumentQA.InputSchema
 ):
     agent = DocumentQA(
-        db_name="kastelli" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_name="aboutme" if payload.collection == "default" else payload.collection,  # noqa: E501
+        db_type=payload.database,
         temperature=payload.temperature,
         model_name=payload.model,
         streaming=True,
