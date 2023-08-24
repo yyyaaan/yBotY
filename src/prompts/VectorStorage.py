@@ -38,7 +38,10 @@ class VectorStorage:
         return None
 
     @staticmethod
-    async def delete_persistent_collection(collection_name: str, database: str):
+    async def delete_persistent_collection(
+        collection_name: str,
+        database: str
+    ):
         settings = Settings()
         message = {"message": f"deleted {collection_name} from {database}"}
         try:
@@ -67,7 +70,7 @@ class VectorStorage:
             if res.status_code > 299:
                 raise Exception(f"Elastic Search not available {res.text}")
             indices = [
-                k for k, _ in res.json().items() 
+                k for k, _ in res.json().items()
                 if (not k.startswith(".")) and ("fluentd" not in k)
             ]
         except Exception as e:
@@ -176,9 +179,12 @@ class VectorStorage:
         )
         es.client.indices.refresh(index=collection_name)
         return None
-    
+
     @staticmethod
-    def create_codebase_db(database: str = "elasticsearch", name: str = "codebase"):
+    def create_codebase_db(
+        database: str = "elasticsearch",
+        name: str = "codebase"
+    ):
         """load relevant code to database for code understanding"""
         from langchain.document_loaders.generic import GenericLoader
         from langchain.document_loaders.parsers import LanguageParser

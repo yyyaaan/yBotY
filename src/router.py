@@ -93,7 +93,7 @@ def create_collection_from_file(
     create_func = VectorStorage.chroma_create_persistent_collection
     if payload.database.lower() == "elasticsearch":
         create_func = VectorStorage.elasticsearch_create_persistent_index
-        
+
     try:
         # VectorStorage.chroma_create_persistent_collection(
         create_func(
@@ -153,7 +153,7 @@ def chat_about_me_stream(
     db_name = "aboutme" if payload.collection == "default" else payload.collection  # noqa: E501
     if not db_name.startswith("about"):
         raise HTTPException(
-            status_code=401, 
+            status_code=401,
             detail="this endpoint does not allow using the collection"
         )
 
