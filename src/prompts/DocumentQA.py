@@ -62,7 +62,7 @@ class DocumentQA(BaseOpenAI):
         else:
             db = Chroma(
                 persist_directory=f"{settings.CHROMA_PATH}/{db_name}",
-                embedding_function=embedding, # noqa
+                embedding_function=embedding,
             )
             self.database = "chroma"
         return db.as_retriever()
