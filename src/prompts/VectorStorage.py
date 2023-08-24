@@ -24,6 +24,7 @@ class VectorStorage:
 
     class InputDelSchema(BaseModel):
         collection_name: str
+        database: str = "elasticsearch"
 
     class InputDelFileSchema(BaseModel):
         filename: str
@@ -35,6 +36,28 @@ class VectorStorage:
             filename = f"{upload_dir}/{filename}"
         system(f'rm -f "{filename}"')
         return None
+
+    @staticmethod
+    async def delete_persistent_collection(collection_name: str, database: str):
+        settings = Settings()
+        message = {"message": f"deleted {collection_name} from {database}"}
+        try:
+            if database.lower() == "chroma":
+                collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
+                system(f"rm -rf {collection_dir}")
+                return {"status": "deleted", "database": "chroma", **message}
+
+            async with AsyncClient() as client:
+                res = await client.delete(url=f"{Settings().ELASTICSEARCH_URL}/{collection_name}")  # noqa: E501
+            if res.status_code > 299:
+                raise Exception(f"Elastic Search not available {res.text}")
+            return {"status": "deleted", "database": "elasticsearch", **message}  # noqa: E501
+        except Exception as e:
+            print("delete from vector db failed", e)
+            return {
+                "status": "failed",
+                "message": f"deletion failed {database}.{collection_name}: {e}"
+            }
 
     @staticmethod
     async def list_vector_db_set():
@@ -133,26 +156,6 @@ class VectorStorage:
         del vector_db
 
         return None
-
-    @staticmethod
-    def chroma_delete_persistent_collection(
-        collection_name: str, use_chroma=False
-    ):
-        """
-        delete a Chroma collection, and flush the folder
-        """
-        settings = Settings()
-        collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
-
-        if use_chroma:
-            vector_db = Chroma(
-                embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
-                persist_directory=collection_dir,
-            )
-            print(f"DEL Chroma DB Collection {vector_db._collection.name}")
-            vector_db.delete_collection()
-
-        system(f"rm -rf {collection_dir}")
 
     @staticmethod
     def elasticsearch_create_persistent_index(
