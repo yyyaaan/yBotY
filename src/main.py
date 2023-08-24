@@ -3,7 +3,7 @@
 import sys
 from fastapi import FastAPI, Request
 
-from router import templates, router, router_open, router_frontend
+from router import router, router_open
 from routerProtected import router_admin_only
 
 # sqlite3 version correction
@@ -15,13 +15,10 @@ app = FastAPI()
 
 @app.get("/")
 def index(request: Request):
-    return templates.TemplateResponse(
-        "bot/index.html", context={"request": request}
-    )
+    return {"info": "hello world"}
 
 
 app.include_router(router)
 app.include_router(router_open)
 app.include_router(router_admin_only, prefix="/admin", tags=["LLM Admin"])
-# only in this app, if mounted, do not include below
-app.include_router(router_frontend)
+

@@ -1,28 +1,15 @@
 # Yan Pan, 2023
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from fastapi.templating import Jinja2Templates
 
 from prompts.CodeAnalyzer import CodeAnalyzer
 from prompts.DocumentQA import DocumentQA
 from prompts.VectorStorage import VectorStorage
 
 
-templates = Jinja2Templates(
-    # require copy ./templates/bot to parent app
-    directory="./templates",
-    block_start_string='[%',
-    block_end_string='%]',
-    variable_start_string='[[',
-    variable_end_string=']]',
-    comment_start_string='{#',
-    comment_end_string='#}',
-)
-
 # using two routers for possible fine-tuned auth level
 router = APIRouter()
 router_open = APIRouter()
-router_frontend = APIRouter()
 
 
 def get_trace_callable(request: Request):
@@ -191,62 +178,3 @@ def chat_document_stream(
         media_type="text/event-stream",
         headers={'Connection': 'keep-alive', 'Cache-Control': 'no-cache'}
     )
-
-
-# minimal frontend, not used in production
-
-def render_chat_page(request: Request, name: str, **kwargs):
-    return templates.TemplateResponse(
-        name="bot/code.html" if "code" in name.lower() else "bot/chat.html",
-        context={
-            "request": request,
-            "endpoint": str(request.url_for(name)),
-            **kwargs
-        },
-    )
-
-
-@router_frontend.get("/chat", tags=["Frontend"])
-def page_chat_me(request: Request):
-    meta = {
-        "title": "About Yan Pan",
-        "desc": (
-            "\nI am a chatbot that can tell about Yan Pan."
-            "\nYou may use any preferred language."
-            "\nPlease be aware that even though instructed to be precise and "
-            "fact-based, language model could provide inaccurate information."
-        ),
-    }
-    return render_chat_page(request, "chat_about_me_stream", **meta)
-
-
-@router_frontend.get("/chat-file", tags=["Frontend"])
-def page_chat_file(request: Request):
-    meta = {
-        "title": "Chat with a File",
-        "desc": "\nI am a chatbot that can answer questions about commonly used files.",  # noqa: E501
-        "allow_db_selection": 1
-    }
-    return render_chat_page(request, "chat_document_stream", **meta)
-
-
-@router_frontend.get("/chat-web", tags=["Frontend"])
-def page_chat_web(request: Request):
-    meta = {
-        "title": "Chat with a Webpage",
-        "desc": (
-            "\nI am a chatbot that can answer questions about any webpage."
-            "\nPlease provide the URL of the webpage."
-        ),
-        "allow_input_field": 1
-    }
-    return render_chat_page(request, "chat_document_stream", **meta)
-
-
-@router_frontend.get("/code", tags=["Frontend"])
-def page_code_analysis(request: Request):
-    meta = {
-        "title": "Code Analysis Bot",
-        "desc": "I am a chatbot that can answer questions about code."
-    }
-    return render_chat_page(request, "analyze_code_stream", **meta)
