@@ -88,21 +88,20 @@ def delete_file(
 
 
 @router_admin_only.get("/log")
-def get_log(request: Request, filename=""):
+def get_buffering_log(request: Request, filename=""):
     """
-    Archived logs (not available for today's log)
+    Buffering Log only, usually only for today.
     """
-    available_logs = [
-        x for x in listdir("/mnt/shared/fluentd")
-        if x.endswith(".log")
-    ]
+    # the path containing dollar sign is literal
+    buffer_folder = "/mnt/shared/fluentd/${tag}"
 
+    available_logs = [x for x in listdir(buffer_folder) if x.endswith(".log")]
     if filename is not None and len(filename):
         selected_log = filename
     else:
         selected_log = sorted(available_logs)[-1]
 
-    with open(f"/mnt/shared/fluentd/{selected_log}", "r") as f:
+    with open(f"{buffer_folder}/{selected_log}", "r") as f:
         log_content = f.read().split("\n")
 
     return {
