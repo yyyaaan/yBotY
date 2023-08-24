@@ -13,16 +13,32 @@ file_dir = Settings().UPLOAD_PATH
 def admin_panel(request: Request):
     """only for checking admin privileges"""
     return {"admin": "yes"}
-    # return templates.TemplateResponse(
-    #     name="bot/admin.html",
-    #     context={"request": request}
-    # )
 
 
 @router_admin_only.get("/list-uploaded-files", response_model=list[str])
 async def list_uploaded_files(request: Request):
     """List all uploaded files"""
     return [f for f in listdir(file_dir)]
+
+
+@router_admin_only.post("/create-vector-codebase")
+async def create_codebase_vector_db(
+    request: Request,
+    payload: VectorStorage.InputSchema
+):
+    """
+    collection name will be prefixed with codebase- for frontend use
+    Chroma is preferred over elasticsearch for code understanding
+    source_file will be ignored.
+    """
+    docs = VectorStorage.create_codebase_db(
+        name=f"codebase-{payload.collection_name}",
+        database=payload.database,
+    )
+    return {
+        "loaded": docs,
+        "message": f"codebase vectorized from {len(docs)} files"
+    }
 
 
 @router_admin_only.post("/upload")
@@ -44,19 +60,15 @@ async def upload_file(
 
 
 @router_admin_only.post("/delete-vector-collection")
-def delete_collection(
+async def delete_collection(
     request: Request,
     payload: VectorStorage.InputDelSchema
 ):
     """Delete a collection from Chroma DB"""
-    try:
-        VectorStorage.chroma_delete_persistent_collection(
-            collection_name=payload.collection_name
-        )
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail=str(e))
-    return {"message": f"{payload.collection_name} deleted"}
+    return await VectorStorage.delete_persistent_collection(
+        collection_name=payload.collection_name,
+        database=payload.database
+    )
 
 
 @router_admin_only.post("/delete-file")

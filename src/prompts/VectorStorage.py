@@ -24,6 +24,7 @@ class VectorStorage:
 
     class InputDelSchema(BaseModel):
         collection_name: str
+        database: str = "elasticsearch"
 
     class InputDelFileSchema(BaseModel):
         filename: str
@@ -37,6 +38,31 @@ class VectorStorage:
         return None
 
     @staticmethod
+    async def delete_persistent_collection(
+        collection_name: str,
+        database: str
+    ):
+        settings = Settings()
+        message = {"message": f"deleted {collection_name} from {database}"}
+        try:
+            if database.lower() == "chroma":
+                collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
+                system(f"rm -rf {collection_dir}")
+                return {"status": "deleted", "database": "chroma", **message}
+
+            async with AsyncClient() as client:
+                res = await client.delete(url=f"{Settings().ELASTICSEARCH_URL}/{collection_name}")  # noqa: E501
+            if res.status_code > 299:
+                raise Exception(f"Elastic Search not available {res.text}")
+            return {"status": "deleted", "database": "elasticsearch", **message}  # noqa: E501
+        except Exception as e:
+            print("delete from vector db failed", e)
+            return {
+                "status": "failed",
+                "message": f"deletion failed {database}.{collection_name}: {e}"
+            }
+
+    @staticmethod
     async def list_vector_db_set():
         try:
             async with AsyncClient() as client:
@@ -44,7 +70,7 @@ class VectorStorage:
             if res.status_code > 299:
                 raise Exception(f"Elastic Search not available {res.text}")
             indices = [
-                k for k, _ in res.json().items() 
+                k for k, _ in res.json().items()
                 if (not k.startswith(".")) and ("fluentd" not in k)
             ]
         except Exception as e:
@@ -112,16 +138,20 @@ class VectorStorage:
     def chroma_create_persistent_collection(
         source_file: str,
         collection_name: str,
-        is_web_url: bool = False
+        is_web_url: bool = False,
+        predefined_texts: list = [],
     ) -> None:
         """
         embed a document (html, txt, doc) to vector and save to database
         when is_web_url is true, shortcut to download and parse file
         collection_name is also the folder name
+        if predefined_texts is provided, will skip document loader and splitter
         """
         settings = Settings()
+        cond = bool(predefined_texts is not None and len(predefined_texts))
+        docs = predefined_texts if cond else VectorStorage.prepare_documents(source_file, is_web_url)  # noqa: E501
         vector_db = Chroma.from_documents(
-            documents=VectorStorage.prepare_documents(source_file, is_web_url),
+            documents=docs,
             embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY),
             persist_directory=f"{settings.CHROMA_PATH}/{collection_name}",
         )
@@ -131,37 +161,59 @@ class VectorStorage:
         return None
 
     @staticmethod
-    def chroma_delete_persistent_collection(
-        collection_name: str, use_chroma=False
-    ):
-        """
-        delete a Chroma collection, and flush the folder
-        """
-        settings = Settings()
-        collection_dir = f"{settings.CHROMA_PATH}/{collection_name}"
-
-        if use_chroma:
-            vector_db = Chroma(
-                embedding_function=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY), # noqa
-                persist_directory=collection_dir,
-            )
-            print(f"DEL Chroma DB Collection {vector_db._collection.name}")
-            vector_db.delete_collection()
-
-        system(f"rm -rf {collection_dir}")
-
-    @staticmethod
     def elasticsearch_create_persistent_index(
         source_file: str,
         collection_name: str,
-        is_web_url: bool = False
+        is_web_url: bool = False,
+        predefined_texts: list = [],
     ):
+        """similar to chroma_create_persistent_collection"""
         settings = Settings()
+        cond = bool(predefined_texts is not None and len(predefined_texts))
+        docs = predefined_texts if cond else VectorStorage.prepare_documents(source_file, is_web_url)  # noqa: E501
         es = ElasticsearchStore.from_documents(
-            documents=VectorStorage.prepare_documents(source_file, is_web_url),
+            documents=docs,
             index_name=collection_name,
             embedding=OpenAIEmbeddings(openai_api_key=settings.OPENAI_KEY),
             es_url=settings.ELASTICSEARCH_URL,
         )
         es.client.indices.refresh(index=collection_name)
         return None
+
+    @staticmethod
+    def create_codebase_db(
+        database: str = "elasticsearch",
+        name: str = "codebase"
+    ):
+        """load relevant code to database for code understanding"""
+        from langchain.document_loaders.generic import GenericLoader
+        from langchain.document_loaders.parsers import LanguageParser
+
+        loader = GenericLoader.from_filesystem(
+            "/app",
+            glob="**/*",
+            suffixes=[".py"],
+            parser=LanguageParser(language="python", parser_threshold=500)
+        )
+        documents = loader.load()
+        docs_loaded = [x.metadata.get('source', '?') for x in documents]
+
+        texts = RecursiveCharacterTextSplitter.from_language(
+            language="python",
+            chunk_size=2000,
+            chunk_overlap=200
+        ).split_documents(documents)
+
+        params = {
+            "source_file": "",
+            "collection_name": name,
+            "is_web_url": False,
+            "predefined_texts": texts
+        }
+
+        if database.lower() == "chroma":
+            VectorStorage.chroma_create_persistent_collection(**params)
+        else:
+            VectorStorage.elasticsearch_create_persistent_index(**params)
+
+        return docs_loaded
