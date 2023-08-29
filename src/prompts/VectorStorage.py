@@ -26,13 +26,6 @@ class VectorStorage:
         collection_name: str
         database: str = "elasticsearch"
 
-    class InputCodeBaseSchema(BaseModel):
-        collection_name: str
-        path: str = "/app"
-        language: str = "python"
-        suffix: str = ".py"
-        database: str = "elasticsearch"
-
     class InputDelFileSchema(BaseModel):
         filename: str
 

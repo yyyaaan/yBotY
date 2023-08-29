@@ -10,22 +10,10 @@ router_admin_only = APIRouter()
 file_dir = Settings().UPLOAD_PATH
 
 
-@router_admin_only.get("/admin", summary="Check admin privileges")
-def admin_panel(request: Request):
-    """only for checking admin privileges"""
-    return {"admin": "yes"}
-
-
-@router_admin_only.get("/list-uploaded-files", response_model=list[str])
-async def list_uploaded_files(request: Request):
-    """List all uploaded files"""
-    return [f for f in listdir(file_dir)]
-
-
 @router_admin_only.post("/create-vector-codebase")
 async def create_codebase_vector_db(
     request: Request,
-    payload: VectorStorage.InputCodeBaseSchema
+    payload: VectorSpecialty.InputCodeBaseSchema
 ):
     """
     collection name will be prefixed with codebase- for frontend use
@@ -41,6 +29,39 @@ async def create_codebase_vector_db(
         "loaded": docs,
         "message": f"codebase vectorized from {len(docs)} files"
     }
+
+
+@router_admin_only.post("/create-vector-log")
+async def create_recent_log_vector_db(
+    request: Request,
+    payload: VectorSpecialty.InputLoadLogSchema
+):
+    """
+    collection name will be prefixed with logs- for frontend use\n
+    rolling database is recommended, i.e. collection_name='rolling'
+    """
+    try:
+        params = payload.model_dump()
+    except:  # noqa: E722
+        params = payload.dict()  # pydantic backward compatibility
+    params["name"] = f"log-{payload.collection_name}"
+    docs = await VectorSpecialty.create_logs_db(**params)
+    return {
+        "loaded": docs,
+        "message": f"log vectorized from {len(docs)} files"
+    }
+
+
+@router_admin_only.get("/admin", summary="Check admin privileges")
+def admin_panel(request: Request):
+    """only for checking admin privileges"""
+    return {"admin": "yes"}
+
+
+@router_admin_only.get("/list-uploaded-files", response_model=list[str])
+async def list_uploaded_files(request: Request):
+    """List all uploaded files"""
+    return [f for f in listdir(file_dir)]
 
 
 @router_admin_only.post("/upload")
