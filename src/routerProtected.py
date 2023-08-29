@@ -4,6 +4,7 @@ from os import listdir
 
 from botSettings.settings import Settings
 from prompts.VectorStorage import VectorStorage
+from prompts.VectorSpecialty import VectorSpecialty
 
 router_admin_only = APIRouter()
 file_dir = Settings().UPLOAD_PATH
@@ -35,7 +36,7 @@ async def create_codebase_vector_db(
     except:  # noqa: E722
         params = payload.dict()  # pydantic backward compatibility
     params["name"] = f"codebase-{payload.collection_name}"
-    docs = VectorStorage.create_codebase_db(**params)
+    docs = VectorSpecialty.create_codebase_db(**params)
     return {
         "loaded": docs,
         "message": f"codebase vectorized from {len(docs)} files"
