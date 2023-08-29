@@ -24,17 +24,18 @@ async def list_uploaded_files(request: Request):
 @router_admin_only.post("/create-vector-codebase")
 async def create_codebase_vector_db(
     request: Request,
-    payload: VectorStorage.InputSchema
+    payload: VectorStorage.InputCodeBaseSchema
 ):
     """
     collection name will be prefixed with codebase- for frontend use
-    Chroma is preferred over elasticsearch for code understanding
-    source_file will be ignored.
+    suffix can be comma separated string (will be taken as array)
     """
-    docs = VectorStorage.create_codebase_db(
-        name=f"codebase-{payload.collection_name}",
-        database=payload.database,
-    )
+    try:
+        params = payload.model_dump()
+    except:  # noqa: E722
+        params = payload.dict()  # pydantic backward compatibility
+    params["name"] = f"codebase-{payload.collection_name}"
+    docs = VectorStorage.create_codebase_db(**params)
     return {
         "loaded": docs,
         "message": f"codebase vectorized from {len(docs)} files"

@@ -26,6 +26,13 @@ class VectorStorage:
         collection_name: str
         database: str = "elasticsearch"
 
+    class InputCodeBaseSchema(BaseModel):
+        collection_name: str
+        path: str = "/app"
+        language: str = "python"
+        suffix: str = ".py"
+        database: str = "elasticsearch"
+
     class InputDelFileSchema(BaseModel):
         filename: str
 
@@ -182,24 +189,28 @@ class VectorStorage:
 
     @staticmethod
     def create_codebase_db(
+        name: str = "codebase",
         database: str = "elasticsearch",
-        name: str = "codebase"
+        path: str = "/app",
+        language: str = "python",
+        suffix: str = ".py",
+        **kwargs,
     ):
         """load relevant code to database for code understanding"""
         from langchain.document_loaders.generic import GenericLoader
         from langchain.document_loaders.parsers import LanguageParser
 
         loader = GenericLoader.from_filesystem(
-            "/app",
+            path=path,
             glob="**/*",
-            suffixes=[".py"],
-            parser=LanguageParser(language="python", parser_threshold=500)
+            suffixes=suffix.split(","),
+            parser=LanguageParser(language=language, parser_threshold=500)
         )
         documents = loader.load()
         docs_loaded = [x.metadata.get('source', '?') for x in documents]
 
         texts = RecursiveCharacterTextSplitter.from_language(
-            language="python",
+            language=language,
             chunk_size=2000,
             chunk_overlap=200
         ).split_documents(documents)
