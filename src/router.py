@@ -27,7 +27,6 @@ def get_trace_callable(request: Request):
     return trace_func if callable(trace_func) else print
 
 
-# backends
 @router.post(
     "/chat-document",
     tags=["LLM Structured Answer"],
@@ -170,6 +169,7 @@ def chat_document_stream(
         db_type=payload.database,
         temperature=payload.temperature,
         model_name=payload.model,
+        include_source=payload.include_source,
         streaming=True,
         trace_func=get_trace_callable(request)
     )

@@ -26,6 +26,7 @@ class BaseOpenAI:
         self.openai_callback = OpenAICallbackHandler()
         self.trace = trace_func  # callable
         self.database = "unspecified"
+        self.result = None # only available for async
 
         if streaming:
             self.async_callback = AsyncIteratorCallbackHandler()
@@ -87,7 +88,7 @@ class BaseOpenAI:
     async def wrap_done(self, fn: Awaitable, event: Event):
         """Wrap an awaitable, event on done or on exception"""
         try:
-            await fn
+            self.result = await fn
         except Exception as e:
             print(f"Caught exception: {e}")
         finally:

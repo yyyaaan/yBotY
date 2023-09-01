@@ -1,5 +1,5 @@
 # Yan Pan, 2023
-from langchain.chains import RetrievalQA
+from langchain.chains import RetrievalQA, RetrievalQAWithSourcesChain
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma, ElasticsearchStore
 from pydantic import BaseModel
@@ -22,6 +22,7 @@ class DocumentQA(BaseOpenAI):
         collection: str = "default"
         temperature: float = 0.1
         model: str = "gpt-3.5-turbo"
+        include_source: bool = True
 
     class OutputSchema(BaseModel):
         response: str
@@ -32,6 +33,7 @@ class DocumentQA(BaseOpenAI):
         db_name: str,
         db_type: str = "chroma",
         chain_type: str = "stuff",
+        include_source: bool = True,
         **kwargs
     ):
 
@@ -40,7 +42,10 @@ class DocumentQA(BaseOpenAI):
 
         super().__init__(**kwargs)
 
-        self.qa = RetrievalQA.from_chain_type(
+        # different chain type if source is required!
+        self.include_source = include_source
+        ChainClass = RetrievalQAWithSourcesChain if include_source else RetrievalQA  # noqa: E501
+        self.qa = ChainClass.from_chain_type(
             llm=self.llm,
             chain_type=chain_type,
             retriever=self.__configure_db(db_name, db_type),
@@ -78,12 +83,20 @@ class DocumentQA(BaseOpenAI):
     async def ask_stream(self, question: str):
         self.validate_streaming()
 
-        task = self.create_asyncio_wrapped_task(
-            self.qa.arun(question)
-        )
+        if self.include_source:
+            task = self.create_asyncio_wrapped_task(
+                self.qa.acall({"question": question}, return_only_outputs=False)  # noqa: E501
+            )
+        else:
+            task = self.create_asyncio_wrapped_task(
+                self.qa.arun(question)
+            )
 
         async for token in self.async_callback.aiter():
             yield token
 
         await task
+        # print(self.result)
         _ = self.collect_usage()
+
+# %%
