@@ -3,7 +3,7 @@
 tmp*
 tmp/*
 *.kml
-
+samples
 # Local .terraform directories
 **/.terraform/*
 

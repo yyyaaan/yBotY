@@ -1,0 +1,115 @@
+{
+    "prompts": {
+        "routing_entry": "You are an expert with various functions to use.  When user asks a question, you need to determine the function and parameters needed. Please remember you always keep notes on user questions (also the requested format) and you key findings (if any) and parse it to the function call in 'note'. The function compare_documents is only useful when user request two docId. For example, if user want to compare two software services, it does not belong to `compare_documents` (`answer_question` is the correct one)",
+        "routing_question_base": "Please select corresponding function to use, and remember to put question summary take your notes. User questions: ",
+        "doc_content_is_provided": "You have now access to the following contexts and sources. Each are separated by '|||'. Please answer the question according to the context; don't make up.",
+        "doc_summarize_map_chunk": "You are working on one part of the whole documents, and please summarize according to the note you have made the following content. Please include only the summary without any extra comments.",
+        "doc_summarize_reduce": "Below are the summaries from each part of the whole document, please kindly make the nice summary of the whole document based on the partial summaries.",
+        "doc_list_from_search": "You have the following list of files in json format, please list the files in reading-optimized way according to the note.",
+        "instruction_doc_source_format": "The sources were formatted as 'filename at some numeric position'. When answering, cite the provided sources in bracket with a number immediately as necesary, and include the matching number and source information (without any change or re-phrasing) in a list at the end",
+        "_instruction_recheck_json": "In the previous conversation, you were quested to generate JSON response, but the latest answer seem to wrongly formatted. Please kindly double check, and reply only in JSON."
+    },
+    "functions": [
+        {
+            "name": "answer_question",
+            "description": "Answer user questions based on some query or keywords",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "docIds": {
+                        "type": "string",
+                        "description": "the document Ids or docIds, can be list of comma separated docId"
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "the keywords and query to search for"
+                    },
+                    "note": {
+                        "type": "string",
+                        "description": "put user question and your findings so far here"
+                    }
+                },
+                "required": ["docIds", "query", "note"]
+            }
+        },
+        {
+            "name": "summarize_document",
+            "description": "Summarize a document from given docIds",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "docIds": {
+                        "type": "string",
+                        "description": "the document Ids or docIds, can be list of comma separated docId"
+                    },
+                    "note": {
+                        "type": "string",
+                        "description": "put user question and your findings so far here"
+                    }
+                },
+                "required": ["docIds", "note"]
+            }
+        },
+        {
+            "name": "compare_documents",
+            "description": "Compare the selected document by docId against documents inside a category. Note that it compares documents, but not other services or objects.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "docIds": {
+                        "type": "string",
+                        "description": "the document Ids or docIds, can be list of comma separated docId"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "the category of reference documents",
+                        "default": "reference"
+                    },
+                    "note": {
+                        "type": "string",
+                        "description": "put user question and your findings so far here"
+                    }
+                },
+                "required": ["docIds", "note"]
+            }
+        },
+        {
+            "name": "list_documents",
+            "description": "List the titles and categories of documents that are registered for public use.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category": {
+                        "type": "string",
+                        "description": "the user specified category to look for, empty if not specified",
+                        "default": ""
+                    },
+                    "note": {
+                        "type": "string",
+                        "description": "put user question and your findings so far here"
+                    }
+                },
+                "required":  ["note"]
+            }
+        },
+        {
+            "name": "query_sql_database",
+            "description": "useful when need get some data from existing databases: Emission Data (db='sqlEmission.db') and Flight Data (db='sqlFlight.db'). You should take of user question carefully, and schema will be presented in next step",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "db": {
+                        "type": "string",
+                        "description": "the db that to execute sql commands",
+                        "enum": ["sqlEmission.db", "sqlFlight.db"]
+                    },
+                    "note": {
+                        "type": "string",
+                        "description": "put user question and your findings so far here"
+                    }
+                },
+                "required":  ["note"]
+            }
+        }
+    ]
+}

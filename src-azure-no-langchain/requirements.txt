@@ -1,0 +1,11 @@
+# NOT FOR PROD.
+# in production, use pip-tools to compute the full dependency map
+# azure search must use Pre-release
+azure-search-documents>=11.4.0b9
+openai
+numpy
+tiktoken
+fastapi
+jinja2
+uvicorn
+pydantic-settings

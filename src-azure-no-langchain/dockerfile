@@ -1,0 +1,12 @@
+# Yan Pan, 2023 
+FROM python:3.11-slim
+
+RUN mkdir /app
+WORKDIR /app
+COPY ./src/python/requirements.txt . 
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./src/python /app
+
+# CMD/ENTRYPOINT can be overwrite in docker compose or kubernetes cmd
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8009"]

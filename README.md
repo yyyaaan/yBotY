@@ -1,17 +1,17 @@
 # yBotY
 
-### [Live Demo (API docs)](https://v2.yan.fi/api/docs) 
+### [Live Demo (API docs) `langchain`-powered](https://v2.yan.fi/api/docs) 
+
+### [Implementation in Azure without `langcahin` in subfolder](/src-azure-no-langchain)
 
 [![yBotY-app](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml/badge.svg)](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml) 
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white) ![Vue.js](https://img.shields.io/badge/vuejs-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D) ![ChatGPT](https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white) ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white) ![Debian](https://img.shields.io/badge/Debian-D70A53?style=for-the-badge&logo=debian&logoColor=white) 
 
 
-This demo is created using `langchain`; for an implementation (proprietary) with sole Azure framework see,
+> __yBotY__ is part of [__yyy-cluster__](https://github.com/yyyaaan/yyy-cluster/), and __authentication__ is managed there.
 
-### [Implementation Concept in Azure without `langcahin`](https://v2.yan.fi/llm-design)
-
-> __yBotY__ is part of [__yyy-cluster__](https://github.com/yyyaaan/yyy-cluster/), and authentication is managed there. __Frontend__ in production is achieved through `VueJS` there. See the last section below.
+>  __Frontend__ in production is achieved through `VueJS` there. See the last section below.
 
 Advance prompt engineering backend with API to LLM
 

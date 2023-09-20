@@ -1,0 +1,28 @@
+# Yan Pan 2023, for local development
+version: "local-dev-only"
+
+services:
+
+  y-bot-y:
+    build:
+      context: .
+    volumes:
+      - ./src:/app
+    command: "uvicorn main:app --reload --host 0.0.0.0 --port 8010;"  
+    env_file:
+      - .env
+    ports:
+      - 8010:8010
+
+  azure-openai-exp:
+    restart: always
+    build:
+      context: ./src-azure-no-langchain
+    volumes:
+      - ./src-azure-no-langchain:/app
+      - ./mnt:/app/samples
+    command: "uvicorn main:app --reload --host 0.0.0.0 --port 8009;"  
+    env_file:
+      - .env
+    ports:
+      - 8009:8009

@@ -1,0 +1,229 @@
+<!-- Yan Pan 2023 -->
+[% extends "base.html" %]
+
+[% block head %] 
+<title>[[title]]</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<style>
+    .chat-card {
+        border-radius: 15px;
+        padding: 10px;
+        border: powderblue solid 3px;
+        margin-top: 10px;
+    }
+    .sidenav {
+        padding: 20px;
+    }
+    div.scroll-y {
+        overflow-y: scroll; 
+        height:80%;
+    }
+    .chip {
+        font-size: xx-small;
+    }
+    select, .mute{
+        color: lightgray;
+    }
+    .card-panel {
+        white-space: pre-wrap;
+    }
+    .fixed {
+        position: fixed;
+        top: 0;
+        right: 10%;
+        width: 100%;
+        height: 99px;
+        background-color: white;
+        z-index: 996;
+    }
+    #chat-bubbles {
+        margin-top: 90px;
+    }
+    #streaming-indicator{
+        margin-top: -25px;
+    }
+    .chain {
+        color: green;
+    }
+
+</style>
+[% endblock %]
+
+[% block main %]
+<div id="app">
+    <div class="fixed">
+        <p class=" right-align">
+            <a href="#" data-target="slide-out" class="sidenav-trigger">
+                Choose Document <i class="material-icons">newspaper</i>
+            <br>
+            <small class="mute">{{selectedDocIds.length}} document<span v-if="selectedDocIds.length>1">s<span> selected</small>
+            </a>
+        </p>
+    </div>
+    
+    <div id="slide-out" class="sidenav">
+        <p>You may select one or more documents:</p>
+        <div class="scroll-y">
+            <p v-for="doc in documents">
+                <label>
+                    <input type="checkbox" class="browser-default"
+                        v-model="selectedDocIds" :id="doc.SourceFileName" :value="doc.SourceId"  />
+                    <span>
+                        {{ doc.SourceFileName }}
+                        <sup v-if="doc.Category"><i>{{doc.Category}}</i></sup>
+                        <br>
+                        <small class="mute">{{doc.SourceId}}</small>
+                    </span>
+                </label>
+            </p>
+        </div>
+
+    </div>
+
+    <div id="chat-bubbles" class="row">
+        <div v-for="msg in chat" :class="msg.role==='user'? 'col s9 push-s3' : 'col s10'" >
+            <div class="card-panel grey lighten-5">
+                {{ msg.content }}
+                <ol class="chain" v-if="showChain && msg.role !='user'">
+                    <li v-for="thought in msg.chain">{{thought}}</li>
+                </ol>
+                <br/>
+                <div v-if="msg.role!='user'" class="right-align">
+                    <div class="chip" v-if="msg.chain.length" @click="showChain=1-showChain">Toggle Reasoning Chain</div>
+                    <div v-for="tag in msg.tags" class="chip">{{tag}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="streamText" class="col s10">
+            <div class="card-panel grey lighten-5">
+                <div id="streaming-indicator" class="progress cyan lighten-5">
+                    <div class="indeterminate cyan lighten-4"></div>
+                </div>
+                <ul class="chain">
+                    <li v-for="thought in streamThoughts">{{thought}}</li>
+                </ul>
+                {{ streamText }}
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-input" class="row valign-wrapper">
+        <div class="input-field col s10">
+            <input type="text" v-model="userInput" @keyup.enter="sendInput" @keyup.up="copyLastQuestion" :disabled="streamText.length" />
+        </div>
+        <div class="col s2" @click="sendInput">
+            <i class="material-icons" style="font-size: 30px; color: lightblue">send</i>
+        </div>
+    </div>
+[% endblock %]
+
+[% block vuejs %]
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        M.Sidenav.init(
+            document.querySelectorAll('.sidenav'), 
+            {edge: 'right'}
+        );
+    });
+    const {createApp} = Vue;
+    const urlChat = "[[ url_for('router_chain') ]]";
+    const urlDocList = "[[ url_for('list_vector_db' )]]";
+
+    createApp({
+        data() {
+            return {
+                userInput: '',
+                userInputPrevious: '',
+                streamText: '',
+                streamThoughts: [],
+                showChain: 0,
+                message: '',
+                isLoading: 0,
+                showConfig: 0,
+                inputURL: "",
+                chat: [{"role": "sys", "content": `Welcome! [[desc]]`, "tags": [], "chain": []}],
+                documents: [{ SourceId: 'a1', SourceFileName: 'aaa' }, { SourceId: 'b2', SourceFileName: 'bbb'}],
+                selectedDocIds: [],
+                selectedTemperature: 0.1
+            }
+        },
+
+        mounted() {
+            fetch(urlDocList)
+                .then((response) => {
+                    if (response.ok) return response.json();
+                    throw new Error(`failed to list docs ${response.status}`);
+                })
+                .then((data) => {
+                    this.documents = data;
+                    // this.selectedDocIds = [data[0].SourceId];
+                })
+            .catch((error) => { console.error(error); })
+        },
+
+        methods: {
+            copyLastQuestion(){
+                this.userInput = this.userInputPrevious;
+            },
+
+            async sendInput() {
+                if (this.userInput.length < 10){
+                    M.toast({ html: "question too short. please try again." });
+                    return;
+                }
+                if (this.streamText.length){
+                    M.toast({ html: "Please wait for agent to complete the previous chat." });
+
+                }
+                this.chat.push({"role": "user", "content": this.userInput});
+                this.streamText = "\n";
+                console.log()
+                const docIds = this.selectedDocIds.join(',');
+                // encodeURIComponent(this.userInput)
+                // console.log(`{"question": "${this.userInput}", "docIds": "${docIds}"}`)
+                const response = await fetch(urlChat, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache',
+                        'Connection': 'keep-alive'
+                    },
+                    body: `{"question": "${this.userInput}", "docIds": "${docIds}"}`
+                });
+                // starting streaming
+                this.userInputPrevious = this.userInput;
+                this.userInput = "";
+                let flagTrace = true;
+                const reader = response.body.getReader();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = new TextDecoder('utf-8').decode(value);
+                    if (chunk === '--- END OF TRACING ---') {
+                        flagTrace = false;
+                        continue;
+                    }
+                    if (flagTrace) {
+                        chunks = chunk.split('>');
+                        for (let i=0; i < chunks.length; i++)
+                            if (chunks[i].length) this.streamThoughts.push(chunks[i]);
+                    } else {
+                        this.streamText += chunk;
+                    }
+                }
+
+                // finish
+                this.chat.push({
+                    "role": "sys", 
+                    "content": this.streamText,
+                    "chain": this.streamThoughts,
+                })
+                this.streamText = '';
+                this.streamThoughts = [];
+            },
+        }
+    }).mount("#app");
+    </script>
+[% endblock %]
