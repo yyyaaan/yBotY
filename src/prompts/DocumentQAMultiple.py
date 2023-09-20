@@ -10,8 +10,8 @@ from prompts.DocumentQA import DocumentQA
 class DocumentQAMultiple():
 
     def __init__(self):
-        QA1 = DocumentQA(db_name="log-rolling", db_type="chroma")
-        QA2 = DocumentQA(db_name="codebase-default", db_type="chroma")
+        QA1 = DocumentQA(db_name="log-rolling", db_type="elasticsearch")
+        QA2 = DocumentQA(db_name="codebase-default", db_type="elasticsearch")
 
         tools = [
             Tool(

@@ -10,8 +10,8 @@ beautifulsoup4
 unstructured
 pydantic
 pydantic-settings
-chromadb
 elasticsearch
 pandas
 markdown
 httpx
+# chromadb support suspended

@@ -1,8 +1,7 @@
 # Yan Pan, 2023 
-# As of June 2023, packages cannot fully support python 3.11, nor any slim
-FROM python:3.11-bullseye
+# if chromadb is used, use bullseye
+FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1 HNSWLIB_NO_NATIVE=1
-
 
 RUN mkdir /app
 WORKDIR /app

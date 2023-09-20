@@ -10,15 +10,15 @@ from botSettings.settings import Settings
 
 class DocumentQA(BaseOpenAI):
     """
-    Document QA backend with ChromaDB
-    See ChromaDB must be existing - create it using VectorDB.create_from_file
+    Document QA backend
+    vector collection must exist- create it using VectorDB.create_from_file
     """
 
     CHAIN_TYPES = ["stuff", "map_reduce", "refine"]
 
     class InputSchema(BaseModel):
         question: str
-        database: str = "chroma"
+        database: str = "elasticsearch"
         collection: str = "default"
         temperature: float = 0.1
         model: str = "gpt-3.5-turbo"
@@ -31,7 +31,7 @@ class DocumentQA(BaseOpenAI):
     def __init__(
         self,
         db_name: str,
-        db_type: str = "chroma",
+        db_type: str = "elasticsearch",
         chain_type: str = "stuff",
         include_source: bool = False,
         **kwargs
