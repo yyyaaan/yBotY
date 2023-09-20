@@ -22,7 +22,7 @@ class DocumentQA(BaseOpenAI):
         collection: str = "default"
         temperature: float = 0.1
         model: str = "gpt-3.5-turbo"
-        include_source: bool = True
+        include_source: bool = False
 
     class OutputSchema(BaseModel):
         response: str
@@ -33,7 +33,7 @@ class DocumentQA(BaseOpenAI):
         db_name: str,
         db_type: str = "chroma",
         chain_type: str = "stuff",
-        include_source: bool = True,
+        include_source: bool = False,
         **kwargs
     ):
 
@@ -96,7 +96,8 @@ class DocumentQA(BaseOpenAI):
             yield token
 
         await task
-        # print(self.result)
+        print(self.result)
+        print(type(self.result))
         _ = self.collect_usage()
 
 # %%
