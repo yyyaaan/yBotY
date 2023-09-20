@@ -4,6 +4,7 @@ from fastapi.responses import StreamingResponse
 
 from prompts.CodeAnalyzer import CodeAnalyzer
 from prompts.DocumentQA import DocumentQA
+from prompts.DocumentQAMultiple import DocumentQAMultiple
 from prompts.VectorStorage import VectorStorage
 
 
@@ -178,3 +179,13 @@ def chat_document_stream(
         media_type="text/event-stream",
         headers={'Connection': 'keep-alive', 'Cache-Control': 'no-cache'}
     )
+
+
+@router.post("/alpha/chat-multi-docs", tags=["LLM Streaming Response"])
+def chat_multi_docs_stream(
+    request: Request,
+    payload: DocumentQA.InputSchema
+):
+    agent = DocumentQAMultiple()
+
+    return agent.ask(payload.question)

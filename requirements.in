@@ -9,6 +9,7 @@ python-multipart
 beautifulsoup4
 unstructured
 pydantic
+pydantic-settings
 chromadb
 elasticsearch
 pandas
