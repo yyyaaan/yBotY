@@ -181,7 +181,7 @@ def chat_document_stream(
     )
 
 
-@router.post("/stream/chat-multi-docs", tags=["LLM Streaming Response"])
+@router.post("/alpha/chat-multi-docs", tags=["LLM Streaming Response"])
 def chat_multi_docs_stream(
     request: Request,
     payload: DocumentQA.InputSchema
