@@ -1,16 +1,19 @@
-# Experiments
+# Experiments with Azure OpenAI and Azure Vector Search
 
-This folder contains draft codes that are not suitable for production use.
-
-## [Design Chart](http://v2.yan.fi/llm-design)
+- customizable embeddings and searching with Vector Search
+- `sql` skills to interact with database
+- Router based chat flow design
+- MapReduce or Stuff is chosen based on content length (token num)
+- traceable thought chain
+- simple and lightweight: only FastAPI, Azure and OpenAI SDK
+- can select, even mix use of GPT3.5 and GPT4 within a chat chain
 
 > GPT-3.5-turbo 0613 or GPT-4 0613 is required for function calling.
 
-Contents:
-- [LLM Strategies](strategy%3A-routing-%2B-note-taking)
-- [How to use demo python-based API and UI](#how-to-use%3A-python-fastapi-with-ui)
-- [Action Points](#action-points)
-- [References](#references)
+This module and `FastAPI` routers should be __mounted or proxy from auth controller__.
+
+## [Design Chart (link)](http://v2.yan.fi/llm-design)
+
 
 ## How to use: Python FastAPI with UI
 

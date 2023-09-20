@@ -2,7 +2,7 @@
 
 ### [Live Demo (API docs) `langchain`-powered](https://v2.yan.fi/api/docs) 
 
-### [Implementation in Azure without `langcahin` in subfolder](/src-azure-no-langchain)
+### [Implementation in Azure without `langchain` in subfolder](/src-azure-no-langchain)
 
 [![yBotY-app](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml/badge.svg)](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml) 
 
