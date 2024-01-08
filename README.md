@@ -4,6 +4,8 @@
 
 ### [Implementation in Azure without `langchain` in subfolder](/src-azure-no-langchain)
 
+### [Experimental features with Vision](/exp)
+
 [![yBotY-app](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml/badge.svg)](https://github.com/yyyaaan/yBotY/actions/workflows/test-build-push-yBot.yaml) 
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white) ![Vue.js](https://img.shields.io/badge/vuejs-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D) ![ChatGPT](https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white) ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white) ![Debian](https://img.shields.io/badge/Debian-D70A53?style=for-the-badge&logo=debian&logoColor=white) 
@@ -19,7 +21,7 @@ Two set of APIs:
 - sync API wait for all answers from LLM, often more structured
 - streaming APIs sends token immediately one available, only in string
 
-## `ChromaDB` support is currently suspended (`elasticsearch` prioritized)
+## `ChromaDB` support is suspended with `elasticsearch` prioritized
 
 Due to `pydantic` and `pydantic-settings` support issues, only `elasticsearch` is actively used for vector storage. This also allows for smaller image size.
 

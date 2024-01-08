@@ -14,6 +14,16 @@ services:
     ports:
       - 8010:8010
 
+  exp:
+    build:
+      context: ./exp
+    volumes:
+      - ./exp:/exp
+      - ./tmp:/tmp
+    command: "tail -F anything;"  
+    env_file:
+      - .env
+
   azure-openai-exp:
     restart: always
     build:

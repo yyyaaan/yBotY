@@ -1,0 +1,10 @@
+# Yan Pan, 2024
+FROM python:3.12
+ENV PYTHONUNBUFFERED=1
+
+RUN mkdir /exp
+WORKDIR /exp
+
+RUN pip install openai
+
+# entry point in docker compose (local) or Kubernetes deployment manifest
