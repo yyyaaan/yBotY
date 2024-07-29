@@ -1,7 +1,7 @@
 # Yan Pan, 2023
 from langchain.chains import RetrievalQA, RetrievalQAWithSourcesChain
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma, ElasticsearchStore
+from langchain_community.vectorstores import Chroma, ElasticsearchStore
+from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel
 
 from prompts.BaseOpenAI import BaseOpenAI

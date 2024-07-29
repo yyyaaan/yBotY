@@ -1,9 +1,10 @@
 # Yan Pan, 2023
 from glob import glob
 from httpx import AsyncClient
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma, ElasticsearchStore
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma, ElasticsearchStore
+
 from os import system
 from pydantic import BaseModel
 
@@ -94,33 +95,31 @@ class VectorStorage:
         # from langchain.document_loaders import DataFrameLoader
 
         if is_web_url:
-            from langchain.document_loaders import WebBaseLoader
+            from langchain_community.document_loaders import WebBaseLoader
             loader = WebBaseLoader(source_file)
 
         elif source_file_ext in ["html", "htm"]:
-            # from langchain.document_loaders import UnstructuredHTMLLoader
-            # bs_kwargs={"features": "html.parser"}
-            from langchain.document_loaders import BSHTMLLoader
+            from langchain_community.document_loaders import BSHTMLLoader
             loader = BSHTMLLoader(file_path=source_file),
 
         elif source_file_ext in ["csv"]:
-            from langchain.document_loaders import UnstructuredCSVLoader
+            from langchain_community.document_loaders import UnstructuredCSVLoader
             loader = UnstructuredCSVLoader(source_file)
 
         elif source_file_ext in ["doc", "docx"]:
-            from langchain.document_loaders import UnstructuredWordDocumentLoader  # noqa
+            from langchain_community.document_loaders import UnstructuredWordDocumentLoader
             loader = UnstructuredWordDocumentLoader(source_file)
 
         elif source_file_ext in ["pdf"]:
-            from langchain.document_loaders import UnstructuredPDFLoader
+            from langchain_community.document_loaders import UnstructuredPDFLoader
             loader = UnstructuredPDFLoader(source_file)
 
         elif source_file_ext in ["md"]:
-            from langchain.document_loaders import UnstructuredMarkdownLoader  # noqa
+            from langchain_community.document_loaders import UnstructuredMarkdownLoader
             loader = UnstructuredMarkdownLoader(source_file)
 
         elif source_file_ext in ["txt"]:
-            from langchain.document_loaders import TextLoader
+            from langchain_community.document_loaders import TextLoader
             loader = TextLoader(source_file)
 
         else:
