@@ -3,22 +3,23 @@ import base64
 from openai import OpenAI
 
 
-with open("../tmp/7024.JPG", "rb") as f:
+with open("../tmp/apps.png", "rb") as f:
     base64_image = base64.b64encode(f.read()).decode('utf-8')
 
+prompt = "What app logs are there?"
 
 client = OpenAI()
 
 # %% Image > text understanding only
 response = client.chat.completions.create(
-    model="gpt-4-vision-preview",
+    model="gpt-4o",
     messages=[
         {
             "role": "user",
             "content": [
                 {
                     "type": "text",
-                    "text": "Can you transform this image to anime style?"
+                    "text": prompt
                 },
                 {
                     "type": "image_url",
