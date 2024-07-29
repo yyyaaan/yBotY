@@ -4,6 +4,7 @@ uvicorn
 jinja2
 openai
 langchain-community
+langchain-openai
 tiktoken
 python-multipart
 beautifulsoup4
