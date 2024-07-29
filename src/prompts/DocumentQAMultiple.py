@@ -1,8 +1,8 @@
 # Yan Pan, 2023
 
-from langchain.agents import initialize_agent, Tool
+from langchain.agents import initialize_agent
 from langchain.agents import AgentType
-
+from langchain_core.tools import Tool
 
 from prompts.DocumentQA import DocumentQA
 

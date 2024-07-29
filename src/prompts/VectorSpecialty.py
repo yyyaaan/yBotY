@@ -1,10 +1,10 @@
 # Yan Pan, 2023
 from datetime import datetime
 from glob import glob
-from langchain.document_loaders import TextLoader
-from langchain.document_loaders.generic import GenericLoader
-from langchain.document_loaders.parsers import LanguageParser
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders.generic import GenericLoader
+from langchain_community.document_loaders.parsers.language.language_parser import LanguageParser
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
 
 from prompts.VectorStorage import VectorStorage

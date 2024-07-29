@@ -61,7 +61,7 @@ class Dependencies:
     ):
         openai_args = {
             "deployment_id": "chat",
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o",
             "api_key": self.credentials.OpenAIApiKey,
             "api_base": self.credentials.OpenAIUrl,
             "api_type": "azure",

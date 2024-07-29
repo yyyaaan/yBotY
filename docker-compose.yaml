@@ -14,15 +14,25 @@ services:
     ports:
       - 8010:8010
 
-  azure-openai-exp:
-    restart: always
+  exp:
     build:
-      context: ./src-azure-no-langchain
+      context: ./exp
     volumes:
-      - ./src-azure-no-langchain:/app
-      - ./mnt:/app/samples
-    command: "uvicorn main:app --reload --host 0.0.0.0 --port 8009;"  
+      - ./exp:/exp
+      - ./tmp:/tmp
+    command: "tail -F anything;"  
     env_file:
       - .env
-    ports:
-      - 8009:8009
+
+  # azure-openai-exp:
+  #   restart: always
+  #   build:
+  #     context: ./src-azure-no-langchain
+  #   volumes:
+  #     - ./src-azure-no-langchain:/app
+  #     - ./mnt:/app/samples
+  #   command: "uvicorn main:app --reload --host 0.0.0.0 --port 8009;"  
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 8009:8009

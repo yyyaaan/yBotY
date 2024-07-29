@@ -1,5 +1,5 @@
 # Yan Pan, 2023
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from pydantic import BaseModel
 from typing import Optional
@@ -15,7 +15,7 @@ class CodeAnalyzer(BaseOpenAI):
     class InputSchema(BaseModel):
         code: str
         temperature: float = 0.1
-        model: str = "gpt-3.5-turbo"
+        model: str = "gpt-4o"
 
     class OutputSchema(BaseModel):
         language: Optional[str] = ""

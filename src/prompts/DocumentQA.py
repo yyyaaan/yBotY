@@ -1,7 +1,7 @@
 # Yan Pan, 2023
 from langchain.chains import RetrievalQA, RetrievalQAWithSourcesChain
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma, ElasticsearchStore
+from langchain_community.vectorstores import Chroma, ElasticsearchStore
+from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel
 
 from prompts.BaseOpenAI import BaseOpenAI
@@ -21,7 +21,7 @@ class DocumentQA(BaseOpenAI):
         database: str = "elasticsearch"
         collection: str = "default"
         temperature: float = 0.1
-        model: str = "gpt-3.5-turbo"
+        model: str = "gpt-4o"
         include_source: bool = False
 
     class OutputSchema(BaseModel):

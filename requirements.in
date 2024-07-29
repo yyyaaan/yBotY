@@ -3,7 +3,8 @@ pytest
 uvicorn
 jinja2
 openai
-langchain
+langchain-community
+langchain-openai
 tiktoken
 python-multipart
 beautifulsoup4

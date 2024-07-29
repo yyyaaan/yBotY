@@ -1,10 +1,11 @@
 # Yan Pan, 2023
 from asyncio import create_task, Event, Task
-from langchain.callbacks import AsyncIteratorCallbackHandler, OpenAICallbackHandler # noqa
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
-from langchain.schema import LLMResult
+from langchain.callbacks import AsyncIteratorCallbackHandler # noqa
 from typing import AsyncIterable, Awaitable
 from botSettings.settings import Settings
+from langchain_community.callbacks import OpenAICallbackHandler
+from langchain_core.outputs import LLMResult
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
 
 class BaseOpenAI:
@@ -16,7 +17,7 @@ class BaseOpenAI:
     def __init__(
         self,
         temperature: float = 0.7,
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = "gpt-4o",
         using_azure: bool = False,
         streaming: bool = False,
         trace_func: callable = print,
