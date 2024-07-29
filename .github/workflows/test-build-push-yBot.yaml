@@ -27,7 +27,8 @@ jobs:
     
     - name: Install minimized dependencies
       run: |
-        pip install flake8 fastapi pytest jinja2 openai langchain httpx python-multipart pysqlite3 pandas pydantic-settings
+        pip install -r requirements.txt
+        pip install flake8 pytest
     
     - name: Lint
       run: |
