@@ -16,7 +16,7 @@ class BaseOpenAI:
     def __init__(
         self,
         temperature: float = 0.7,
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = "gpt-4o",
         using_azure: bool = False,
         streaming: bool = False,
         trace_func: callable = print,

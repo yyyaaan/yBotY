@@ -15,7 +15,7 @@ class CodeAnalyzer(BaseOpenAI):
     class InputSchema(BaseModel):
         code: str
         temperature: float = 0.1
-        model: str = "gpt-3.5-turbo"
+        model: str = "gpt-4o"
 
     class OutputSchema(BaseModel):
         language: Optional[str] = ""

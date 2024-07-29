@@ -21,7 +21,7 @@ class DocumentQA(BaseOpenAI):
         database: str = "elasticsearch"
         collection: str = "default"
         temperature: float = 0.1
-        model: str = "gpt-3.5-turbo"
+        model: str = "gpt-4o"
         include_source: bool = False
 
     class OutputSchema(BaseModel):
